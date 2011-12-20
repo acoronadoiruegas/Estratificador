@@ -1,0 +1,609 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-GB">
+<head>
+	<title>CLASIFICADOR WEB</title>
+	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="screen.css" media="screen" />
+	<!--<link rel="stylesheet" type="text/css" href="jquery-ui/css/smoothness/jquery-ui-1.8.16.custom.css"/>-->
+        <link rel="stylesheet" type="text/css" href="jquery-ui/css/south-street/jquery-ui-1.8.16.custom.css"/>
+        
+	<link rel="stylesheet" type="text/css" href="css/demo.css"/>
+	<style type="text/css">
+	  .selectlist-item {
+	    font-size: 9px;	    	    	  
+	  }
+	</style>
+	
+	<script src="jquery-ui/js/jquery-1.6.4.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="jquery-ui/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/itemListStratification.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/scriptHistorial.js" type="text/javascript" charset="utf-8"></script>
+	<script type='text/javascript' src="OpenLayers.js"></script>
+	
+	
+	<link rel="stylesheet" type="text/css" href="css/selectlist.css" />
+ 	
+  	<script type="text/javascript" src="js/jquery.selectlist.pack.js"></script>
+	
+	<script type="text/javascript" src="js/raphael-min.js"></script>
+    <script type="text/javascript" src="js/scatterplot.js" charset="utf-8"></script>	
+	<script src="http://maps.google.com/maps/api/js?v=3.5&amp;sensor=false"></script> 
+	<script type="text/javascript" charset="utf-8">		
+		$(function() {
+			$( "#accordion" ).accordion({active: 3});
+			$( "#tabs" ).tabs();
+			$( "select#variables" ).selectList();
+			$( "#radio" ).buttonset();
+			$( "button" ).button();
+			$( "#dialog" ).dialog({
+			autoOpen: false,
+            minWidth: 730,
+            position:  ['right','top'] 
+			});
+			$("chart").scatterplot();
+        	$("chart").scatterplot("drawGrid");		
+                });
+	</script>
+	<script type='text/javascript'>
+        var map;
+        var wms;
+        var datosEstados;
+        var estratos
+        var numeroEjecuciones = 0;
+        //var ip = "10.192.4.118"
+        var ip = "10.20.50.71";
+        ////var ip = "192.168.1.69";
+        ////var ipapp = "192.168.1.69";
+        var ipapp = "10.20.50.71";
+        //var ipapp = "10.192.2.222"
+        var urlSLD;
+        var urlLineChart;
+        var urlComponentChart;
+        var metodo;
+         function init() {
+                
+         	var options = {
+			      projection: new OpenLayers.Projection("EPSG:900913"),
+			      displayProjection: new OpenLayers.Projection("EPSG:4326"),
+			      units: "m",
+			      numZoomLevels: 20,
+			      maxResolution: 156543.0339,
+			      maxExtent: new OpenLayers.Bounds(-20037508, -20037508,
+			                                              20037508, 20037508.34)
+			  };
+             map = new OpenLayers.Map('map_element', options);
+             //var gphy = new OpenLayers.Layer.Google(
+		     //   "Google Physical",
+		     //   {type: google.maps.MapTypeId.TERRAIN},
+		     //   {isBaseLayer:true}
+        	 //	);
+        	 var gmap = new OpenLayers.Layer.Google(
+			     // "Google Streets", // the default
+			     "Google Physical",
+		          {type: google.maps.MapTypeId.TERRAIN},
+			      {'sphericalMercator': true, numZoomLevels: 20}
+			      ,{isBaseLayer:true}
+			  );	
+             wms = new OpenLayers.Layer.WMS(
+             'Marco Geoestadistico',
+             'http://'+ip+':8080/geoserver/EstadosGeneralizados/wms',
+            // 'http://gaia.inegi.org.mx/NLB/mdm5.wms',
+             { layers: 'EstadosGeneralizados:ESTADOS_MEXICO',//'c100',
+               srs: 'EPSG:4326',
+               format: 'image/png', 
+               tiled: 'true',
+               transparent:'true' 
+             },
+             {isBaseLayer:false
+               //,maxExtent: new OpenLayers.Bounds(-118.408,14.532,-86.71,32.719)
+             }
+             );
+             
+             //map.addLayer([gphy,wms]);
+             map.addLayers([ gmap, wms]);
+             
+             //if(!map.getCenter()){
+             //   map.zoomToMaxExtent();
+             // }
+              var point = new OpenLayers.LonLat(-102.559, 23.6255); 
+			  // Need to convert zoom point to mercator too
+			  point.transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject()); 			            
+			  map.setCenter(point, 5); 
+			            
+              
+              descargaDatos();
+             }
+          function estratificar(){
+          	if($("#radio1").is(':checked')){ //kmedias
+          		kmedias();
+          	}else if($("#radio2").is(':checked')){ //mclust
+          		mclust();
+          	}else if($("#radio3").is(':checked')){ //mclust
+          		mulvar();
+          	}
+          	   
+          	
+          }   
+          function kmedias(){
+                 estratos = null;
+                 var numeroEstratos = $('#numEstratos').val();
+                 var variables = $('#variables').val();                 
+                 var urlKmedias = "http://"+ipapp+":8080/MotorGeoEstadistico/R/ejecutar?algoritmo=kmedias&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&callback=procesaAjax";                 
+                 var script = document.createElement("script");        
+			     script.setAttribute("src",urlKmedias);
+			     script.setAttribute("type","text/javascript");                
+			     document.body.appendChild(script);
+          }
+          
+          function procesaAjax(data)
+          {
+	           
+	           for (var obj in data.resultados) {
+	              if(data.resultados[obj].nombre=="sld")
+	                {
+	                    urlSLD = data.resultados[obj].valor
+	                }
+	              if(data.resultados[obj].nombre=="estratos")
+	                {
+	                    estratos = data.resultados[obj].valor
+	                }	
+	           }	           
+	           generaMapa(urlSLD);
+	           numeroEjecuciones++;
+                   imagenLineasCentros();
+                   metodo = "KMEDIAS";
+                  animaScatterPlot();         
+          }
+                
+          function mclust(){
+            estratos = null;
+                 var numeroEstratos = $('#numEstratos').val();
+                 var variables = $('#variables').val();
+                 var modelo = $('#modelo').val();                 
+                 var urlmclust = "http://"+ipapp+":8080/MotorGeoEstadistico/R/ejecutar?algoritmo=mclust&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&modelo="+modelo+"&callback=procesaAjaxMclust"
+				 var script = document.createElement("script");        
+		    	 script.setAttribute("src",urlmclust);
+		    	 script.setAttribute("type","text/javascript");                
+		    	 document.body.appendChild(script);
+          }   
+          function procesaAjaxMclust(data)
+             {
+                
+               
+               for (var obj in data.resultados) {  
+                  if(data.resultados[obj].nombre=="sld")
+                    {
+                        urlSLD = data.resultados[obj].valor
+                    }
+                  if(data.resultados[obj].nombre=="estratos")
+                    {
+                        estratos = data.resultados[obj].valor
+                    }
+
+               }
+               generaMapa(urlSLD);
+               numeroEjecuciones++;
+               imagenLineasCentros();
+               metodo = "MCLUST";               
+                
+               animaScatterPlot();
+             }             
+///##############
+          function mulvar(){
+            estratos = null;
+                 var numeroEstratos = $('#numEstratos').val();
+                 var variables = $('#variables').val();                 
+                 var urlmclust = "http://"+ipapp+":8080/MotorGeoEstadistico/R/ejecutar?algoritmo=mulvar&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&callback=procesaAjaxMulvar"
+				 var script = document.createElement("script");        
+		    	 script.setAttribute("src",urlmclust);
+		    	 script.setAttribute("type","text/javascript");                
+		    	 document.body.appendChild(script);
+          }   
+          function procesaAjaxMulvar(data)
+             {                              
+               for (var obj in data.resultados) {  
+                  if(data.resultados[obj].nombre=="sld")
+                    {
+                        urlSLD = data.resultados[obj].valor
+                    }
+                  if(data.resultados[obj].nombre=="estratos")
+                    {
+                        estratos = data.resultados[obj].valor
+                    }
+
+               }
+               generaMapa(urlSLD);
+               numeroEjecuciones++;
+               imagenLineasCentros();
+               metodo = "MULVAR";               
+                
+               animaScatterPlot();
+             }             
+
+///##############
+          function generaMapa(data)
+	      {            
+	           wms.mergeNewParams({                             
+	              SLD:data
+	            });
+	      }
+	      function cambiaImagen()
+         {
+            var variables = $('#variables').val();                
+            var urlStr = "http://"+ipapp+":8080/MotorGeoEstadistico/R/ejecutar?algoritmo=graficaMclust&variables="+variables.join(",")+"&callback=generaImagen";//"&alt=img" 
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);
+         }
+         function generaImagen(data)
+         {
+         	var urlImagen 
+               
+               for (var obj in data.resultados) {  
+                  if(data.resultados[obj].nombre=="graf.png")
+                    {
+                        urlImagen = data.resultados[obj].valor
+                    }                  
+               }
+         	urlImagen = "http://"+ipapp+":8080"+urlImagen
+           $('#imagenMclust').attr('src',urlImagen);
+           $("#dialog").dialog("open");
+         }
+         function animaScatterPlot(){
+            datacolor =  ["#A50026","#006837","#F46D43","#66BD63","#FEE08B","#D9EF8B","#FDAE61","#A6D96A","#D73027",
+                          "#1A9850","#377EB8","#4DAF4A","#984EA3","#FF7F00","#FFFF33","#A65628","#F781BF","#999999",
+                          "#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#FFFF33","#A65628","#F781BF","#999999",
+                          "#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00"];
+                      
+             var datacolorSalida =  [];
+             var i = 0;
+             for (var obj in estratos) {               
+               datacolorSalida[i]=datacolor[estratos[obj]-1];
+               i++;
+             }
+             
+             
+             $("chart").scatterplot("animate",{	'dataX'		:datosEstados[$('#ejeX').val()-1],
+						'dataY'		:datosEstados[$('#ejeY').val()-1],
+						'dataZ'		:datosEstados[$('#ejeZ').val()-1],
+						'dataColor'	:datacolorSalida});
+         }
+         function descargaDatos(){                   
+                    var urlDatos = "http://"+ipapp+":8080/MotorGeoEstadistico/R/ejecutar?algoritmo=datosEstatales&callback=procesaDescarga"
+                   	var script = document.createElement("script");        
+				    script.setAttribute("src",urlDatos);
+				    script.setAttribute("type","text/javascript");                
+				    document.body.appendChild(script);
+         }    
+         function procesaDescarga(data){
+            datosEstados = data.resultados[0].valor;            
+         }
+         function imagenLineasCentros()
+         {
+            var num_estratos = Math.max.apply(Math, estratos); 
+            var variables = $('#variables').val();                
+            var urlStr = "http://"+ipapp+":8080/MotorGeoEstadistico/R/ejecutar?algoritmo=graficaCentrosCluster&variables="+variables.join(",")+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&callback=generaGraficaCentros";
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);
+            
+         }         
+         function generaGraficaCentros(data){
+            var urlImagen                
+               for (var obj in data.resultados) {  
+                  if(data.resultados[obj].nombre=="graf.png")
+                    {
+                        urlImagen = data.resultados[obj].valor
+                    }                  
+               }
+         	urlImagen = "http://"+ipapp+":8080"+urlImagen
+                cambiaGraficaCentros(urlImagen)
+            imagenComponentesPrincipales();    
+         }
+         function imagenComponentesPrincipales()
+         {
+            var num_estratos = Math.max.apply(Math, estratos); 
+            var variables = $('#variables').val();
+            var urlStr = "http://"+ipapp+":8080/MotorGeoEstadistico/R/ejecutar?algoritmo=graficaComponentesPrincipales&variables="+variables.join(",")+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&callback=generaGraficaComponentes";
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);         
+         }
+         function generaGraficaComponentes(data){
+			   var urlImagen                
+               for (var obj in data.resultados) {  
+                  if(data.resultados[obj].nombre=="graf.png")
+                    {
+                        urlImagen = data.resultados[obj].valor
+                    }                  
+               }
+         	urlImagen = "http://"+ipapp+":8080"+urlImagen
+            cambiaGraficaComponentes(urlImagen)
+         }
+         function cambiaGraficaComponentes(urlImagen){
+         	urlComponentChart=urlImagen;
+         	AgregarEstrtificacion(numeroEjecuciones,estratos,urlSLD,$('#variables').val(),metodo,"Texto de los parametros",urlLineChart,urlComponentChart);
+         	$('#imagenComponentes').attr('src',urlImagen);
+         }
+         function estableceGraficaComponentes(urlImagen){         
+         	$('#imagenComponentes').attr('src',urlImagen);	
+         }
+         function cambiaGraficaCentros(urlImagen){
+             urlLineChart=urlImagen;
+             $('#imagenLineas').attr('src',urlImagen);
+         }
+         function estableceGraficaCentros(urlImagen){
+             $('#imagenLineas').attr('src',urlImagen);
+         }
+     </script>   
+</head>
+<body onload='init();'>
+
+<div id="header2" style="color:white">
+	<image id="imagenINEGI" src="img/logoINEGI.gif">              
+        </image>  
+</div>
+<div class="colmask leftmenu" >
+	<div class="colleft">
+		<div class="col1" >
+			<!-- Column 1 start -->
+			<div id="tabs" style="height:597px">
+				<ul>
+					<li><a href="#tabs-1">Mapa</a></li>
+					<li><a href="#tabs-2">Burbujas</a></li>
+                    <li><a href="#tabs-3">Centroides</a></li>					
+                    <li><a href="#tabs-4">Componentes Principales</a></li>
+
+				</ul>
+                            <div id="tabs-1" >
+                                    <center> 
+					<div id='map_element' style=' height: 540px'> </div>
+                                    </center>    
+				</div>
+				<div id="tabs-2">
+					<center>
+                            Tamaño:
+                          <select id="ejeZ" onchange="animaScatterPlot();" style="font-size : 8pt">
+                              <option value="3">% Población con agua entubada</option>
+                              <option value="4">% Población con energia eléctrica</option>
+                              <option value="5">% Población con drenaje</option>
+                              <option value="6">% Población con piso distinto tierra</option>
+                              <option value="7">% Población con dispo sanitario</option>
+                              <option value="8">% Población con refrigerador</option>
+                              <option value="9">% Población con radio</option>
+                              <option value="10">% Población con televisión</option>
+                              <option value="11">% Población con teléfono fijo</option>
+                              <option value="12">% Población con teléfono celular</option>
+                              <option value="13">% Población con computadora</option>
+                              <option value="14">% Población con internet</option>
+                              <option value="15">% Población con auto</option>
+                              <option value="16">% Población con lavadora</option>
+                              <option value="17">% Población con derecho a servicio de salud</option>
+                              <option value="18">% Población analfabeta</option>
+                              <option value="19">% Población asist.escuela..6.14</option>
+                              <option value="20">% Población asist.escuela..12.17</option>
+                              <option value="21">% Población 15 con postprimaria</option>
+                              <option value="22">% Población femenina.12.ocupada</option>
+                              <option value="23">% Población ocupada profesional o técnico</option>
+                              <option value="24">% Población hijos sobrevivientes de mujeres.20.34</option>
+                              <option value="25">% Población mujeres..15.alfabetos</option>
+                              <option value="26">% Población hombres..15.alfabetos</option>
+                              <option value="27">% Población sin.actividad.economica.pensionados.65</option>
+                              <option value="28">% Población 65.con.derechohabiencia</option>
+                              <option value="29">% Población 19..con.derechohabiencia</option>
+                              <option value="30">% Población 15.65..analfabeta</option>
+                              
+                         </select>
+                            </center>
+					<center>	
+                          <div id="chart"></div>
+                    </center>
+                      <center>
+                            Eje X:
+                               <select id="ejeX" onchange="animaScatterPlot();" style="font-size : 8pt">
+                                  
+                                  <option value="3">% Población con agua entubada</option>
+                              <option value="4">% Población con energia eléctrica</option>
+                              <option value="5">% Población con drenaje</option>
+                              <option value="6">% Población con piso distinto tierra</option>
+                              <option value="7">% Población con dispo sanitario</option>
+                              <option value="8">% Población con refrigerador</option>
+                              <option value="9">% Población con radio</option>
+                              <option value="10">% Población con televisión</option>
+                              <option value="11">% Población con teléfono fijo</option>
+                              <option value="12">% Población con teléfono celular</option>
+                              <option value="13">% Población con computadora</option>
+                              <option value="14">% Población con internet</option>
+                              <option value="15">% Población con auto</option>
+                              <option value="16">% Población con lavadora</option>
+                              <option value="17">% Población con derecho a servicio de salud</option>
+                              <option value="18">% Población analfabeta</option>
+                              <option value="19">% Población asist.escuela..6.14</option>
+                              <option value="20">% Población asist.escuela..12.17</option>
+                              <option value="21">% Población 15 con postprimaria</option>
+                              <option value="22">% Población femenina.12.ocupada</option>
+                              <option value="23">% Población ocupada profesional o técnico</option>
+                              <option value="24">% Población hijos sobrevivientes de mujeres.20.34</option>
+                              <option value="25">% Población mujeres..15.alfabetos</option>
+                              <option value="26">% Población hombres..15.alfabetos</option>
+                              <option value="27">% Población sin.actividad.economica.pensionados.65</option>
+                              <option value="28">% Población 65.con.derechohabiencia</option>
+                              <option value="29">% Población 19..con.derechohabiencia</option>
+                              <option value="30">% Población 15.65..analfabeta</option>
+                                      
+                               </select>
+                               Eje Y:
+                               <select id="ejeY" onchange="animaScatterPlot();" style="font-size : 8pt">
+							  <option value="3">% Población con agua entubada</option>
+                              <option value="4">% Población con energia eléctrica</option>
+                              <option value="5">% Población con drenaje</option>
+                              <option value="6">% Población con piso distinto tierra</option>
+                              <option value="7">% Población con dispo sanitario</option>
+                              <option value="8">% Población con refrigerador</option>
+                              <option value="9">% Población con radio</option>
+                              <option value="10">% Población con televisión</option>
+                              <option value="11">% Población con teléfono fijo</option>
+                              <option value="12">% Población con teléfono celular</option>
+                              <option value="13">% Población con computadora</option>
+                              <option value="14">% Población con internet</option>
+                              <option value="15">% Población con auto</option>
+                              <option value="16">% Población con lavadora</option>
+                              <option value="17">% Población con derecho a servicio de salud</option>
+                              <option value="18">% Población analfabeta</option>
+                              <option value="19">% Población asist.escuela..6.14</option>
+                              <option value="20">% Población asist.escuela..12.17</option>
+                              <option value="21">% Población 15 con postprimaria</option>
+                              <option value="22">% Población femenina.12.ocupada</option>
+                              <option value="23">% Población ocupada profesional o técnico</option>
+                              <option value="24">% Población hijos sobrevivientes de mujeres.20.34</option>
+                              <option value="25">% Población mujeres..15.alfabetos</option>
+                              <option value="26">% Población hombres..15.alfabetos</option>
+                              <option value="27">% Población sin.actividad.economica.pensionados.65</option>
+                              <option value="28">% Población 65.con.derechohabiencia</option>
+                              <option value="29">% Población 19..con.derechohabiencia</option>
+                              <option value="30">% Población 15.65..analfabeta</option>                                 
+                              </select>
+                            </center>
+				</div>	
+                            <div id="tabs-3" >
+                            <center>  
+                            	<div style="background-color: #9C9F84">
+                                  <image id="imagenLineas">              
+                                  </image>
+                                </div>    
+                            </center>        
+                            </div>
+                            <div id="tabs-4" >
+                            <center> 
+                            	<div style="background-color: #9C9F84">
+                                  <image id="imagenComponentes">              
+                                  </image>  
+                                </div>      
+                            </center>        
+                            </div>
+			</div>
+			<!-- Column 1 end -->
+		</div>
+		<div class="col2">
+			<!-- Column 2 start -->
+					<div id="accordion">
+					<h3><a href="#">Historial</a></h3>
+					<div id="listaEstratificaciones">
+						
+					</div>
+					<h3><a href="#">Criterios</a></h3>
+					<div>
+						<p style="height:430px">
+						
+						</p>
+					</div>
+					<h3><a href="#">Opciones Avanzadas</a></h3>
+					<div>
+						<p>
+						<hr>
+						Método Mclust
+						</p>						
+						<br>
+						<div style="font-size : 10pt">Modelo:
+							<select id="modelo" name="modelo" style="font-size : 10pt">
+	                        <option value="EII">EII</option>
+	                        <option value="VII">VII</option>
+	                        <option value="EEI">EEI</option>
+	                        <option value="VEI">VEI</option>
+	                        <option value="EVI">EVI</option>
+	                        <option value="VVI">VVI</option>
+	                        <option value="EEE">EEE</option>
+	                        <option value="EEV">EEV</option>
+	                        <option value="VEV">VEV</option>
+	                        <option value="VVV">VVV</option>
+	                   </select><br>
+	                       Caracterización:	                       
+	                       <button style="height: 30px" onClick="cambiaImagen();">Gráfica</button>
+	                     </div>  
+							
+						<hr>
+					</div>
+					<h3><a href="#">Opciones Generales</a></h3>
+					<div>
+						Número de Grupos <select name="numEstratos" id="numEstratos"  style="font-size : 10pt" > 
+							<option value="2">2</option> 
+							<option value="3">3</option> 
+							<option value="4" selected="selected">4</option> 
+							<option value="5">5</option> 
+							<option value="6">6</option> 
+			                                <option value="7">7</option> 
+			                                <option value="8">8</option> 
+						</select> 
+						<br />
+						<hr />
+						
+						Variables <br/>
+						<select id="variables" name="variables[]" multiple="multiple"  style="font-size : 8pt"  title="Seleccione variables">
+		                  <option value="3">% Población con agua entubada</option>
+		                  <option value="4">% Población con energia eléctrica</option>
+		                  <option value="5">% Población con drenaje</option>
+		                  <option value="6">% Población con piso distinto tierra</option>
+		                  <option value="7">% Población con dispo sanitario</option>
+		                  <option value="8">% Población con refrigerador</option>
+		                  <option value="9">% Población con radio</option>
+		                  <option value="10">% Población con televisión</option>
+		                  <option value="11">% Población con teléfono fijo</option>
+		                  <option value="12">% Población con teléfono celular</option>
+		                  <option value="13">% Población con computadora</option>
+		                  <option value="14">% Población con internet</option>
+		                  <option value="15">% Población con auto</option>
+		                  <option value="16">% Población con lavadora</option>
+		                  <option value="17">% Pob. con derecho a serv. de salud</option>
+		                  <option value="18">% Población analfabeta</option>
+		                  <option value="19">% Población asist.escuela..6.14</option>
+		                  <option value="20">% Población asist.escuela..12.17</option>
+		                  <option value="21">% Población 15 con postprimaria</option>
+		                  <option value="22">% Población femenina.12.ocupada</option>
+		                  <option value="23">% Pob. ocupada profesional o técnico</option>
+		                  <option value="24">% Pob. hijos sobreviv.de mujer 20 34</option>
+		                  <option value="25">% Población mujeres..15.alfabetos</option>
+		                  <option value="26">% Población hombres..15.alfabetos</option>
+		                  <option value="27">% Pob.sin act. economica pension 65</option>
+		                  <option value="28">% Población 65.con.derechohabiencia</option>
+		                  <option value="29">% Población 19..con.derechohabiencia</option>
+		                  <option value="30">% Población 15.65..analfabeta</option>		                     
+		                </select>
+		                <br />
+						<hr />
+						<br>						
+						Método de Clasificación
+						<center>
+						<form>
+							<div id="radio" >
+								<input  type="radio" id="radio1" name="radio" checked="checked" /><label for="radio1">k-medias</label>
+								<input type="radio" id="radio2" name="radio" /><label for="radio2">mclust</label>								
+								<input type="radio" id="radio3" name="radio" /><label for="radio3">mulvar</label>
+							</div>
+						</form>
+						<br>
+						<hr />
+						<br>
+						
+							<button style="height: 50px" onClick="estratificar();">CLASIFICAR</button>
+						</center>
+					</div>
+				</div>
+			<!-- Column 2 end -->
+		</div>
+	</div>
+</div>
+<div id="footer2">
+	<center><p style="color: black">DIRECCIÓN GENERAL ADJUNTA DE INVESTIGACION</p></center>
+</div>
+    <div id="dialog" title="Caracterización de la Estratificación" style="width: 700px">
+	<center> 
+              <image id="imagenMclust" src="http://localhost:8080/MotorGeoEstadistico/imagenes/246399b3-a0f8-4dd4-a6a2-1e8328feac7f_simbolos.jpeg">              
+              </image>  
+        </center>
+</div>
+
+</body>
+</html>

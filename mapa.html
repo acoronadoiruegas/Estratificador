@@ -1,0 +1,3313 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-GB">
+<head>
+	<title>CLASIFICADOR WEB</title>
+	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="screen.css" media="screen" /> <!-- " LAYOUT 2 COLUMNS" -->
+	<link rel="stylesheet" type="text/css" href="jquery-ui/css/south-street/jquery-ui-1.8.16.custom.css"/>  <!-- " JQUERY STYLE" -->
+	<link rel="stylesheet" type="text/css" href="css/demo.css"/>  <!-- " HISTORIAL STYLE" -->
+	<script src="jquery-ui/js/jquery-1.6.4.min.js" type="text/javascript" charset="utf-8"></script> <!-- " JQUERY" -->
+	<script src="jquery-ui/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript" charset="utf-8"></script>  <!-- " JQUERY UI" -->	
+	<script type='text/javascript' src="OpenLayers.js"></script> <!-- " CONTROL DE MAPAS" -->
+	<script type='text/javascript' src="http://78.46.83.66/maps/estados.min.geojson.js"></script>  <!-- " GEOJSON ESTADOS" -->
+	<!-- <script type='text/javascript' src="http://78.46.83.66/maps/municipio01.min.geojson.js"></script>  " GEOJSON MUNICIPIOS" -->
+	<script type='text/javascript' src="http://78.46.83.66/maps/municipios_09.min.geojson.js"></script>  <!-- " GEOJSON MUNICIPIOS" -->
+	<script type="text/javascript" src="js/scatterplot.js" charset="utf-8"></script>	 <!-- " PLUGIN JQUERY SCATTERPLOT" -->
+	<script type="text/javascript" src="js/raphael-min.js"></script>	 <!-- " PLUGIN RAPHAEL" -->
+	<script type="text/javascript" src="js/etiquetasmunicipios.min.js"></script>	 <!-- " ETIQUETAS DE MUNICIPIOS" -->
+	<script src="js/scriptHistorial.js" type="text/javascript" charset="utf-8"></script><!-- " MANEJO DEL HISTORIAL" -->
+	<script src="js/itemListStratification.js" type="text/javascript" charset="utf-8"></script> <!-- " MANEJO DE LA ESTRATIFICACION" -->
+	
+	<STYLE type="text/css">
+   		label { white-space:nowrap; font-family: "Arial Narrow";font-size: 9px; width: 100px}
+   		.vertical {
+		  -webkit-transform: rotate(-90deg);
+		  -moz-transform: rotate(-90deg);
+		  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+		  display:block;
+		  font-size:1.1em;
+		  position: relative;
+		  float: left;
+		  vertical-align: middle;		  
+		}
+		.block {
+		  width: 200px;
+		  float: left;
+		  margin: 0 0 10px 0;
+		  vertical-align: middle;
+		}
+		
+		.block .title {
+		  font-family: Arial;
+		  font-size: 12px;
+		  color: #02579F;
+		  text-decoration: underline;
+		  font-weight: bold;
+		  margin: 0 0 1px 0
+		}
+		ol{
+			padding-left: 0;
+			margin-left:0;
+		}
+	 
+		ol>li {
+			list-style-type: none;
+			margin-bottom: .2em;
+		}
+	 
+		ol>li input[type=checkbox] {
+			display: -moz-inline-box;
+			display: inline-block;
+			vertical-align: middle;
+		}
+	 
+		ol>li label {
+			display: -moz-inline-box;
+			display: inline-block;
+			vertical-align: middle;
+		}
+		.ui-button .ui-button-text
+		{
+		 line-height: 1.0;
+		 font-size: .9em;
+		}
+	</STYLE>  
+	<script type="text/javascript" charset="utf-8">		
+		$(function() {
+			$( "#accordion" ).accordion({active: 0 });
+			$( "#tabs" ).tabs();
+			$( "#radio" ).buttonset();
+			$( "button" ).button();
+			$( "#dialog" ).dialog({
+			autoOpen: false,
+            minWidth: 730,
+            position:  ['right','top'] 
+			});
+			$( "#dialogVariables" ).dialog({
+			autoOpen: false,
+            minWidth: 900,
+            position:  ['center','center'],
+            zIndex: 3999,
+            buttons: {
+					"Ok": function(){
+						$(this).dialog('close');
+					}
+				} 
+			});
+			$( "#dialogoDimensionX" ).dialog({
+			autoOpen: false,
+            minWidth: 900,
+            position:  ['center','center'],
+            zIndex: 3999,
+            buttons: {
+					"Ok": function(){
+						$(this).dialog('close');
+					}
+				},
+			close: function(event, ui) {  animaScatterPlot(); }	 
+			});
+			
+			$( "#dialogoDimensionY" ).dialog({
+			autoOpen: false,
+            minWidth: 900,
+            position:  ['center','center'],
+            zIndex: 3999,
+            buttons: {
+					"Ok": function(){
+						$(this).dialog('close');
+					}
+				},
+			close: function(event, ui) {  animaScatterPlot(); }	  
+			});
+			
+			$( "#dialogoDimensionZ" ).dialog({
+			autoOpen: false,
+            minWidth: 900,
+            position:  ['center','center'],
+            zIndex: 3999,
+            buttons: {
+					"Ok": function(){
+						$(this).dialog('close');
+					}
+				},
+			close: function(event, ui) {  animaScatterPlot(); }	  
+			});
+			
+			$("chart").scatterplot({width : 500,
+										height : 500});
+            $("chart").scatterplot("drawGrid").toBack();
+            });
+	</script>
+	
+	<script type='text/javascript'>
+		var datosMunicipales = {};
+        var datosEstatales = {};
+		var map;
+        var vector_layer_estados;
+        var vector_layer_municipios;
+        var lon = 19;
+        var lat = 99;
+        var zoom = 5;
+        //var ip = "http://localhost:7101";
+        var ip = "http://cic.inegi.org.mx";
+        //var ip = "http://10.1.8.76:7025";
+        var estratos=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+        var poligonos=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+        var colorEstratos =  ["#A50026","#006837","#F46D43","#66BD63","#FEE08B","#D9EF8B","#FDAE61","#A6D96A","#D73027",
+                          "#1A9850","#377EB8","#4DAF4A","#984EA3","#FF7F00","#FFFF33","#A65628","#F781BF","#999999",
+                          "#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#FFFF33","#A65628","#F781BF","#999999",
+                          "#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00"];
+        var etiquetasEstados =  ["Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
+									"Colima","Chiapas","Chihuahua","Distrito Federal","Durango","Guanajuato","Guerrero","Hidalgo",
+									"Jalisco","México","Michoacán de Ocampo","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla",
+									"Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala",
+									"Veracruz de Ignacio de la Llave","Yucatán","Zacatecas"];                   
+		var variables = [];
+		var urlComponentChart;
+		var urlLineChart;
+		var numeroEjecuciones = 0;
+		var metodo;
+        function init() {  
+             map = new OpenLayers.Map('map_element');
+             layer = new OpenLayers.Layer.WMS( "INEGI WMS", 
+                    "http://gaia.inegi.org.mx/NLB/mdm5.wms",
+                    {layers: 'c104,c00'} );  
+             map.addLayer(layer);
+             map.setCenter(new OpenLayers.LonLat(lon, lat), zoom);      
+             var geojson_format = new OpenLayers.Format.GeoJSON();
+             var style = new OpenLayers.Style(templateEstados, {context: contextEstados});
+       		 var styleMap = new OpenLayers.StyleMap(style);
+             //var styleMap = new OpenLayers.StyleMap({fillColor: "#0055ed",fillOpacity: 0,strokeWidth:0.4});
+           	 vector_layer_estados = new OpenLayers.Layer.Vector("Estados",{projection: new OpenLayers.Projection("EPSG:4326"),styleMap: styleMap});
+           	 
+           	 var styleMuni = new OpenLayers.Style(templateMunicipios, {context: contextMunicipios});
+           	 var styleMapMuni = new OpenLayers.StyleMap(styleMuni);
+           	 
+           	 vector_layer_municipios = new OpenLayers.Layer.Vector("Municipios",{projection: new OpenLayers.Projection("EPSG:4326"),styleMap: styleMapMuni});    
+             //vector_layer_municipios.events.register("featureselected", vector_layer_municipios, selected);
+             //vector_layer_municipios.events.register("mouseover", vector_layer_municipios, selected);
+             
+             
+             map.addLayer(vector_layer_estados);
+             map.addLayer(vector_layer_municipios);
+             vector_layer_estados.addFeatures(geojson_format.read(estadosfeaturecollection));
+             vector_layer_municipios.addFeatures(geojson_format.read(municipiosfeaturecollection));
+			 var point = new OpenLayers.LonLat(-102.559, 23.6255); 			 
+			 map.setCenter(point, 5); 
+			 
+			 //var control = new OpenLayers.Control.SelectFeature(vector_layer_municipios);
+			 //	, 
+			 //	{ 
+			 //   callbacks: { 
+			 //       click: selected 
+			        //over: selected, 
+			        //out: selected 
+			 //   } 
+			 // });
+			 //map.addControl(control);
+			 //control.activate();
+			 //**************
+			 
+             }
+      function kmedias(){
+             estratos = null;
+             var numeroEstratos = $('#numEstratos').val();
+             variables = [];
+             $("input:checkbox[name=variables]:checked").each(function()
+			 {
+			    variables.push($(this).val().toLowerCase());
+			 });
+			 
+             var nivelGeografico = $('#nivelGeografico').val();
+                       
+             var urlKmedias = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=kmedias&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=1&cen=1&sc=1&callback=procesaRespuestaKmedias";                 
+             var script = document.createElement("script");
+		     script.setAttribute("src",urlKmedias);
+		     script.setAttribute("type","text/javascript");                
+		     document.body.appendChild(script);
+		     
+      }
+      function procesaRespuestaKmedias(data){
+      	for (var obj in data) {	              
+	              if(data[obj].name=="estratos")
+	                {
+	                    estratos = data[obj].value
+	                }else if(data[obj].name=="poligonos"){
+	                	poligonos = data[obj].value
+	                }	
+	           }
+        var nivelGeografico = $('#nivelGeografico').val();
+  		if(nivelGeografico=="0"){
+     			vector_layer_municipios.redraw();
+     			vector_layer_estados.redraw();
+   		}else{
+       			vector_layer_estados.redraw();
+       			vector_layer_municipios.redraw();
+   		}
+   		metodo="KMEDIAS";
+   		numeroEjecuciones++;
+   		imagenLineasCentros(); //Incrusta la gráfica de centroides.
+   		animaScatterPlot();
+   		}
+   		function mclust(){
+             estratos = null;
+             var numeroEstratos = $('#numEstratos').val();
+             variables = [];
+             $("input:checkbox[name=variables]:checked").each(function()
+			 {
+			    variables.push($(this).val().toLowerCase());
+			 });
+			 var modelo = $('#modelo').val();
+             var nivelGeografico = $('#nivelGeografico').val();
+             var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mclust&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=1&cen=1&sc=1"+"&modelo="+modelo+"&callback=procesaRespuestaMclust";                 
+             var script = document.createElement("script");
+		     script.setAttribute("src",urlMclust);
+		     script.setAttribute("type","text/javascript");                
+		     document.body.appendChild(script);
+		     imagenLineasCentros(); //Incrusta la gráfica de centroides.
+      }
+      function procesaRespuestaMclust(data){
+			for (var obj in data) {	              
+					  if(data[obj].name=="estratos")
+						{
+							estratos = data[obj].value
+						}else if(data[obj].name=="poligonos"){
+							poligonos = data[obj].value
+						}	
+				   }
+			var nivelGeografico = $('#nivelGeografico').val();
+			if(nivelGeografico=="0"){
+					vector_layer_municipios.redraw();
+					vector_layer_estados.redraw();
+			}else{
+					vector_layer_estados.redraw();
+					vector_layer_municipios.redraw();
+			}
+		   metodo="MCLUST";
+		   numeroEjecuciones++;	
+		   imagenLineasCentros(); //Incrusta la gráfica de centroides.        
+		   animaScatterPlot();
+      }	
+      function mulvar(){
+             estratos = null;
+             var numeroEstratos = $('#numEstratos').val();
+             variables = [];
+             $("input:checkbox[name=variables]:checked").each(function()
+			 {
+			    variables.push($(this).val().toLowerCase());
+			 });
+             var nivelGeografico = $('#nivelGeografico').val();
+             var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mulvar&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&callback=procesaRespuestaMulvar";
+                            
+             var script = document.createElement("script");
+		     script.setAttribute("src",urlMclust);
+		     script.setAttribute("type","text/javascript");                
+		     document.body.appendChild(script);
+			 imagenLineasCentros(); //Incrusta la gráfica de centroides.        
+      }
+      function procesaRespuestaMulvar(data){
+      	for (var obj in data) {	              
+	              if(data[obj].name=="estratos")
+	                {
+	                    estratos = data[obj].value
+	                }else if(data[obj].name=="poligonos"){
+	                	poligonos = data[obj].value
+	                }	
+	           }
+        var nivelGeografico = $('#nivelGeografico').val();
+  		if(nivelGeografico=="0"){
+     			vector_layer_municipios.redraw();
+     			vector_layer_estados.redraw();
+   		}else{
+       			vector_layer_estados.redraw();
+       			vector_layer_municipios.redraw();
+   		}
+   	   metodo="MULVAR";
+   	   numeroEjecuciones++;
+   	   imagenLineasCentros();
+	   animaScatterPlot();        
+      }
+      function generaMapa()
+      {
+		var nivelGeografico = $('#nivelGeografico').val();
+  		if(nivelGeografico=="0"){
+     			vector_layer_municipios.redraw();
+     			vector_layer_estados.redraw();
+   		}else{
+       			vector_layer_estados.redraw();
+       			vector_layer_municipios.redraw();
+   		} 
+	  }	
+      var contextEstados = {
+                getColor: function(feature) {
+                	var nivelGeografico = $('#nivelGeografico').val();
+                	if(nivelGeografico == 1)
+                	{
+		                	var cve_edo = feature.attributes["CVE_ENT"];
+		                	if(cve_edo.charAt(0)=='0'){
+		                		cve_edo = cve_edo.substring(1);
+		                	}
+		                    var estado = parseInt(cve_edo);
+		                    //alert(feature.attributes["CVE_ENT"]+" -> "+estado.toString()+" -> estrato: " + estratos[estado] );
+		                    var idColor = estratos[estado-1];
+		                    return colorEstratos[idColor-1];
+                    }else
+                    {
+                    	return "#FFFFFF"
+                    }
+                }
+            };
+      var contextMunicipios = {
+                getColor: function(feature) {
+                	var nivelGeografico = $('#nivelGeografico').val();
+                	if(nivelGeografico == 0)
+                	{	                	
+	                	var cve_edo = feature.attributes["CVE_ENT"];
+	                	if(cve_edo.charAt(0)=='0'){
+	                		cve_edo = cve_edo.substring(1);
+	                	}
+	                    var estado = parseInt(cve_edo);
+	                    var cve_mun = feature.attributes["CVE_MUN"];
+	                    if(cve_mun.charAt(0)=='0'){
+	                    	cve_mun = cve_mun.substring(1);
+	                    	if(cve_mun.charAt(0)=='0'){
+	                    		cve_mun = cve_mun.substring(1);
+	                    	}
+	                    }
+	                    var municipio = parseInt(cve_mun);
+	                    var pos = getPosicionEstrato(estado,municipio);
+	                    var idColor = estratos[pos];
+	                    return colorEstratos[idColor-1];
+	                }else
+	                {
+	                	return "#FFFFFF"
+	                }    
+                }
+            };
+      function getPosicionEstrato(estado, municipio) {
+       		var nivelGeografico = $('#nivelGeografico').val();
+       		if(nivelGeografico=="0")
+       		{
+       			for(var i=0; i<poligonos.length; i++) {
+		        	if (poligonos[i] == estado) return i+municipio-1;
+		    	}	
+       		}
+		    return 0;
+		}     
+      var templateEstados = {              
+                fillColor: "${getColor}",
+                fillOpacity: 0.7,
+                strokeWidth:0.55
+            };
+      var templateMunicipios = {              
+                fillColor: "${getColor}",
+                fillOpacity: 0.6,
+                strokeWidth:0.15
+            };   
+      function selected (evt) {
+			    alert(evt.feature.attributes["NOM_MUN"] + " selected on " + this.name);
+			}  
+      function estratificar(){
+          	if($("#radio1").is(':checked')){ //kmedias
+          		kmedias();
+          	}else if($("#radio2").is(':checked')){ //mclust
+          		mclust();
+          	}else if($("#radio3").is(':checked')){ //mclust
+          		mulvar();
+          	}
+          }
+       function openDialogVariables(){
+       	 $("#dialogVariables").dialog("open");
+       }
+       function imagenLineasCentros()
+         {
+            var num_estratos = Math.max.apply(Math, estratos); 
+            var nivelGeografico = $('#nivelGeografico').val();
+            variables = [];
+             $("input:checkbox[name=variables]:checked").each(function()
+			 {
+			    variables.push($(this).val().toLowerCase());
+			 });
+            var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficaCentrosCluster&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&callback=generaGraficaCentros";
+                            
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);
+            
+         }         
+         function generaGraficaCentros(data){
+            var urlImagen                
+               for (var obj in data) {  
+                  if(data[obj].name=="graf.png")
+                    {
+                        urlImagen = data[obj].value
+                    }                  
+               }
+               
+				urlImagen = ip+"/MotorGeoEstadistico"+urlImagen;
+                cambiaGraficaCentros(urlImagen);
+               
+               
+            imagenComponentesPrincipales();    
+         }
+         function cambiaGraficaCentros(urlImagen){
+             if(typeof(urlImagen) != "undefined")
+               {
+					urlLineChart=urlImagen;
+					$('#imagenLineas').attr('src',urlImagen);
+					$('#divimagenLineas').show();
+			   } else
+			   {
+					$('#divimagenLineas').hide();
+			   }
+         }
+         
+         function estableceGraficaCentros(urlImagen){
+			 urlLineChart = urlImagen;
+             $('#imagenLineas').attr('src',urlImagen);
+         }
+         
+         
+         function imagenComponentesPrincipales()
+         {
+            var num_estratos = Math.max.apply(Math, estratos); 
+            var nivelGeografico = $('#nivelGeografico').val();
+            var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficacomponentes&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&callback=generaGraficaComponentes";
+           
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);         
+         }
+                  
+         function generaGraficaComponentes(data){
+			   var urlImagen                
+               for (var obj in data) {  
+                  if(data[obj].name=="graf.png")
+                    {
+                        urlImagen = data[obj].value
+                    }                  
+               }
+         	urlImagen = ip+"/MotorGeoEstadistico"+urlImagen;
+            cambiaGraficaComponentes(urlImagen)
+         }
+         function cambiaGraficaComponentes(urlImagen){
+         	urlComponentChart=urlImagen;
+         	var urlSLD = "";
+         	variables = [];
+             $("input:checkbox[name=variables]:checked").each(function()
+			 {
+			    variables.push($(this).val().toLowerCase());
+			 });
+         	AgregarEstrtificacion(numeroEjecuciones,estratos,urlSLD,variables,metodo,"Texto de los parametros",urlLineChart,urlComponentChart);
+         	$('#imagenComponentes').attr('src',urlImagen);
+         }
+         
+         
+         function estableceGraficaComponentes(urlImagen){         
+         	$('#imagenComponentes').attr('src',urlImagen);	
+         }
+         
+         
+         
+         function openDialogDimension(dimension)  {
+			 if(dimension=='X')
+			 {
+				 $("#dialogoDimensionX").dialog("open");
+			 }else if(dimension=='Y')
+			 {
+				 $("#dialogoDimensionY").dialog("open");
+			 }else if(dimension=='Z')
+			 {
+				 $("#dialogoDimensionZ").dialog("open");
+			 }
+			 
+		 }
+		 function getDatos(dimension){			
+			var varx = $('input[name=variableX]:checked').val();			
+			var vary = $('input[name=variableY]:checked').val();
+			var varz = $('input[name=variableZ]:checked').val();
+			
+            var nivelGeografico = $('#nivelGeografico').val();
+        
+			if(dimension=="X")
+			{
+				if(typeof(varx) != "undefined")
+				{       varx = varx.toLowerCase();
+						var dato;
+						if (nivelGeografico==1)
+						{
+							dato = datosEstatales[varx];
+							if(typeof(dato) == "undefined")
+							{
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+varx+"&con=1&cen=1&sc=1&callback=procesaDimensionDatosEstatales";
+								getDataDimensions(url);
+							}
+						}
+						if (nivelGeografico==0)
+						{
+							dato = datosMunicipales[varx];
+							if(typeof(dato) == "undefined")
+							{
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+varx+"&con=0&cen=1&sc=1&callback=procesaDimensionDatosMunicipales";
+								getDataDimensions(url);
+							}
+						}						
+				};
+			};
+			if(dimension=="Y")
+			{
+				if(typeof(vary) != "undefined")
+				{
+						vary = vary.toLowerCase();
+						var dato;
+						if (nivelGeografico==1)
+						{
+							dato = datosEstatales[vary];
+							if(typeof(dato) == "undefined")
+							{
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+vary+"&con=1&cen=1&sc=1&callback=procesaDimensionDatosEstatales";
+								getDataDimensions(url);
+							}
+						}
+						if (nivelGeografico==0)
+						{
+							dato = datosMunicipales[vary];
+							if(typeof(dato) == "undefined")
+							{
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+vary+"&con=0&cen=1&sc=1&callback=procesaDimensionDatosMunicipales";
+								getDataDimensions(url);
+							}
+						}						
+										
+				};
+			};
+			if(dimension=="Z")
+			{
+				if(typeof(varz) != "undefined")
+				{
+						varz = varz.toLowerCase();
+						var dato;
+						if (nivelGeografico==1)
+						{
+							dato = datosEstatales[varz];
+							if(typeof(dato) == "undefined")
+							{
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+varz+"&con=1&cen=1&sc=1&callback=procesaDimensionDatosEstatales";
+								getDataDimensions(url);
+							}
+						}
+						if (nivelGeografico==0)
+						{
+							dato = datosMunicipales[varz];
+							if(typeof(dato) == "undefined")
+							{
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+varz+"&con=0&cen=1&sc=1&callback=procesaDimensionDatosMunicipales";
+								getDataDimensions(url);
+							}
+						}						
+				};
+			};	
+		 }
+		 
+		 function getDataDimensions(url)
+		 {
+			var urlStr = url;         
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);         
+		 }
+		 function procesaDimensionDatosEstatales(data)
+		 {
+			 var datos;
+			 var variable;
+			for (var obj in data) {  
+                  if(data[obj].name=="datos")
+                    {
+                        datos = data[obj].value
+                    }                  
+                   if(data[obj].name=="variable")
+                    {
+                        variable = data[obj].value
+                    } 
+               }
+            var dato = datosEstatales[variable];
+			if(typeof(dato) == "undefined")
+			{
+				datosEstatales[variable] = datos;
+			}    
+		 }
+		 function procesaDimensionDatosMunicipales(data)
+		 {
+			 var datos;
+			 var variable;
+			for (var obj in data) {  
+                  if(data[obj].name=="datos")
+                    {
+                        datos = data[obj].value
+                    }                  
+                   if(data[obj].name=="variable")
+                    {
+                        variable = data[obj].value
+                    } 
+               }
+            var dato = datosMunicipales[variable];
+			if(typeof(dato) == "undefined")
+			{
+				datosMunicipales[variable] = datos;
+			}  
+		 }
+		 function animaScatterPlot(){			 
+			 var nivelGeografico = $('#nivelGeografico').val();
+			 var varx = $('input[name=variableX]:checked').val();
+			 var vary = $('input[name=variableY]:checked').val();
+			 var varz = $('input[name=variableZ]:checked').val();
+			 if((typeof(varx) != "undefined")&&(typeof(vary) != "undefined")&&(typeof(varz) != "undefined"))
+			 {
+				 varx = varx.toLowerCase();			
+				 vary = vary.toLowerCase();			
+				 varz = varz.toLowerCase();			
+				 
+				 
+					 var datox;
+					 var datoy;
+					 var datoz;
+					 var etiquetas;
+					 if (nivelGeografico==1)
+					 {
+						 datox = datosEstatales[varx];
+						 datoy = datosEstatales[vary];
+						 datoz = datosEstatales[varz];
+						 etiquetas = etiquetasEstados;
+					 }
+					 if (nivelGeografico==0)
+					 {
+						 datox = datosMunicipales[varx];
+						 datoy = datosMunicipales[vary];
+						 datoz = datosMunicipales[varz];
+						 etiquetas = etiquetasMunicipios;
+					 }
+					 
+					 var arr_colores = []
+					 if(nivelGeografico==1)
+					 {
+						 if (estratos.length==32)
+						 {
+							 while(arr_colores.length < datox.length){							   
+							   arr_colores[arr_colores.length]=colorEstratos[estratos[arr_colores.length]];
+							 }
+						 }else
+						 {
+							 while(arr_colores.length < datox.length){
+							   var randomnumber=Math.ceil(Math.random()*8)
+							   arr_colores[arr_colores.length]=colorEstratos[randomnumber];
+							 }
+						 }
+					 }
+					 if (nivelGeografico==0)
+					 {
+						 if (estratos.length>=2400)
+						 {
+							 while(arr_colores.length < datox.length){							   
+							   arr_colores[arr_colores.length]=colorEstratos[estratos[arr_colores.length]];
+							 }
+						 }else
+						 {
+							 while(arr_colores.length < datox.length){
+							   var randomnumber=Math.ceil(Math.random()*8)
+							   arr_colores[arr_colores.length]=colorEstratos[randomnumber];
+							 }
+						 }
+					 }
+						 
+					 
+					 $("chart").scatterplot("animate",{	'dataX'		:datox,
+								'dataY'		:datoy,
+								'dataZ'		:datoz,
+								'dataColor'	:arr_colores,
+								'labels':etiquetas});
+			}
+         }
+
+             
+        function cambiaImagen()
+         {
+			variables = [];
+            $("input:checkbox[name=variables]:checked").each(function()
+			{
+			   variables.push($(this).val().toLowerCase());
+			});			 
+            var nivelGeografico = $('#nivelGeografico').val(); 
+               
+            var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficaMclust&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&callback=generaImagen";
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);
+         }
+         function generaImagen(data)
+         {
+         	var urlImagen 
+               
+               for (var obj in data) {  
+                  if(data[obj].name=="graf.png")
+                    {
+                        urlImagen = data[obj].value;
+                    }                  
+               }
+         	urlImagen = ip+"/MotorGeoEstadistico"+urlImagen
+           $('#imagenMclust').attr('src',urlImagen);
+           $("#dialog").dialog("open");
+         }
+         
+         
+    
+	           
+	           
+       </script>
+       
+</head>
+<body onload='init();'>
+		                <!-- LAYOUT FINAL -->
+		                <div class="colmask leftmenu" >
+						<div class="colleft">
+							<div class="col1" >
+								<!-- Column 1 start -->
+								<div id="tabs" style="height:618px">
+									<ul>
+										<li><a href="#tabs-1">Mapa</a></li>
+										<li><a href="#tabs-2">Burbujas</a></li>
+					                    <li><a href="#tabs-3">Centroides</a></li>					
+					                    <li><a href="#tabs-4">Componentes Principales</a></li>
+					
+									</ul>
+					                <div id="tabs-1" style="vertical-align:middle ">
+					                <center> 
+											<div id='map_element' style='height: 540px;'> </div>
+					                </center>    
+									</div>
+									<div id="tabs-2">
+										<center>
+					                          
+					                          <label id="etiquetaEjeZ" name="etiquetaEjeZ" style="font-size: 10pt;">Tamaño:</label>
+										</center>
+										<center>
+											<button style="float: left" onClick="openDialogDimension('Z');">Tamaño</button>
+											<button style="float: left" onClick="openDialogDimension('X');">Eje X</button>
+											<button style="float: left" onClick="openDialogDimension('Y');">Eje Y</button>
+											<div style="width: 650px">	
+					                        <label id="etiquetaEjeY" name="etiquetaEjeY" class="vertical" style="font-size: 10pt">Eje Y: % de Viviendas con piso de tierra, disponoble en el hogar.</label> <div id="chart"></div>
+					                        </div> 
+					                    </center>
+					                    <center>
+											<label id="etiquetaEjeX" name="etiquetaEjeX" style="font-size: 10pt">Eje X:</label>
+					                    </center>
+									</div>	
+					                <div id="tabs-3" >
+									<center>  	
+										<div id="divimagenLineas">
+											  <image id="imagenLineas">              
+											  </image>
+										</div>	  
+									</center>        
+									</div>
+									<div id="tabs-4" >
+									<center> 
+										  <image id="imagenComponentes">              
+										  </image>  
+									</center>        
+									</div>
+								</div>
+								<!-- Column 1 end -->
+							</div>
+							<div class="col2">
+								<!-- Column 2 start -->
+										<div id="accordion" style="height: 100%">
+										
+										
+										
+										<h3><a href="#">Opciones Generales</a></h3>
+										<div>
+											<label style="font-size: .9em">Número de Grupos </label> <select style="font-size : 8pt" name="numEstratos" id="numEstratos"  style="font-size : 10pt" > 
+												<option value="2">2</option> 
+												<option value="3">3</option> 
+												<option value="4">4</option> 
+												<option value="5" selected="selected">5</option> 
+												<option value="6">6</option> 
+					                            <option value="7">7</option> 
+					                            <option value="8">8</option> 
+											</select>
+											<label style="font-size: .9em">Nivel Geográfico</label> <select style="font-size : 8pt" name="nivelGeografico" id="nivelGeografico"  style="font-size : 10pt" > 
+												<option value="1" selected="selected">Estatal</option> 
+												<option value="0">Municipal</option>  
+											</select>
+											<br />
+											<hr />			
+											<center>														
+												<button onClick="openDialogVariables();">Variables</button>
+											</center>										 
+							                <br/>
+							                <br />
+											<hr />
+											<br>						
+											<center>
+											<form>
+												<div id="radio" >
+													<input  type="radio" onclick="getDatos();" id="radio1" name="radio" checked="checked" /><label for="radio1">k-medias</label>
+													<input type="radio" onclick="getDatos();" id="radio2" name="radio" /><label for="radio2">mclust</label>								
+													<input type="radio" onclick="getDatos();" id="radio3" name="radio" /><label for="radio3">mulvar</label>
+												</div>
+											</form>						
+											<hr />						
+												<button style="height: 50px" onClick="estratificar();">CLASIFICAR</button>
+											</center>
+							                
+											</center>
+											
+										</div>
+										<h3><a href="#">Opciones Avanzadas</a></h3>
+										<div>
+											<p>
+											<hr>
+											Método Mclust
+											</p>						
+											<br>
+											<div style="font-size : 10pt">Modelo:
+												<select id="modelo" name="modelo" style="font-size : 10pt">
+						                        <option value="EII">EII</option>
+						                        <option value="VII">VII</option>
+						                        <option value="EEI">EEI</option>
+						                        <option value="VEI">VEI</option>
+						                        <option value="EVI">EVI</option>
+						                        <option value="VVI">VVI</option>
+						                        <option value="EEE">EEE</option>
+						                        <option value="EEV">EEV</option>
+						                        <option value="VEV">VEV</option>
+						                        <option value="VVV">VVV</option>
+						                   </select><br>
+						                       Caracterización:	                       
+						                       <button style="height: 30px" onClick="cambiaImagen();">Gráfica</button>
+						                     </div>  
+												
+											<hr>
+											<br /><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+										</div>
+										<h3><a href="#">Historial</a></h3>
+										<div id="listaEstratificaciones">
+										</div>
+									</div>
+								<!-- Column 2 end -->
+							</div>
+						</div>
+					</div>
+					<div id="footer2">
+						<center><p style="color: black">INEGI 2012</p></center>
+					</div>
+					<div id="dialog" title="Caracterización de la Estratificación" style="width: 800px">
+						<center> 
+					              <image id="imagenMclust"/>  
+					    </center>
+					</div>
+					<div id="dialogVariables" title="Seleccione las variables de Interes" style="width: 800px;height: 600px">
+						<div class="main_part_x">	
+							<div class="block">		
+								<ol>
+									Población
+									<hr />
+									<!--<li>			
+										<input id="variables" name="variables" type="checkbox" value="POBTOT"/> <label>Población total</label>
+									</li> -->
+	        						<li>			
+										<input id="variables" name="variables" type="checkbox" value="POBMAS"/> <label>% Población masculina</label>
+									</li> 
+	        						<li>
+										<input id="variables" name="variables" type="checkbox" value="POBFEM"/> <label>% Población femenina</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_0A2"/> <label>% Población de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_0A2_M"/> <label>% Población masculina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_0A2_F"/> <label>% Población femenina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_3YMAS"/> <label>% Población de  3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_3YMAS_M"/> <label>% Población masculina de 3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_3YMAS_F"/> <label>% Población femenina de 3 años y más</label>
+									</li>
+	        						<li> 	        						
+										<input  id="variables" name="variables" type="checkbox" value="P_5YMAS"/> <label>% Población de  5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_5YMAS_M"/> <label>% Población masculina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_5YMAS_F"/> <label>% Población femenina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_12YMAS"/> <label>% Población de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_12YMAS_M"/> <label>% Población masculina de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_15YMAS"/> <label>% Población de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_15YMAS_M"/> <label>% Población masculina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_15YMAS_F"/> <label>% Población femenina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_18YMAS"/><label>% Población de 18 años y más </label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_18YMAS_M"/> <label>% Población masculina de 18 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_18YMAS_F"/><label>% Población femenina de 18 años y más</label>									
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_3A5"/> <label>% Población de 3 a 5 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_3A5_M"/> <label>% Población masculina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_3A5_F"/> <label>% Población femenina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_6A11"/> <label>% Población de 6 a 11 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_6A11_M"/> <label>% Población masculina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_6A11_F"/> <label>% Población femenina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_8A14"/> <label>% Población de 8 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_8A14_M"/> <label>% Población masculina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_8A14_F"/> <label>% Población femenina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_12A14"/> <label>% Población de 12 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_12A14_M"/> <label>% Población masculina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_12A14_F"/> <label>% Población femenina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_15A17"/> <label>% Población de 15 a 17 años</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_15A17_M"/> <label>% Población masculina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_15A17_F"/> <label>% Población femenina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variables" name="variables" type="checkbox" value="P_18A24"/> <label>% Población de 18 a 24 años</label>
+									</li> 								
+										<input  id="variables" name="variables" type="checkbox" value="P_18A24_M"/><label>% Población masculina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="P_18A24_F"/><label>% Población femenina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="P_15A49_F"/><label>% Población femenina de 15 a 49</label>
+									</li> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="P_60YMAS"/><label>% Población de 60 años y más</label>
+									</li> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="P_60YMAS_M"/><label>% Población masculina de 60 años</label>
+									</li> 
+	        						<li>	
+										<label><input  id="variables" name="variables" type="checkbox" value="P_60YMAS_F"/><label>% Población femenina de 60 años</label>
+									</li> 
+	        						<!--<li>	
+										<input  id="variables" name="variables" type="checkbox" value="REL_H_M"/><label>Relación hombres-mujeres</label>
+									</li>--> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="POB0_14"/><label>% Población de cero a 14 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="POB15_64"/><label>% Población de 15 a 64 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="POB65_MAS"/><label>% Población de 65 años y más</label>
+									</li> 
+									Fecundidad
+									<hr/>
+									<!--
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="PROM_HNV"/><label>Promedio de hijos nacidos vivos</label>
+									</li> 
+									-->
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="PNACENT"/><label>% Población nacida en la entidad</label>
+									</li> 
+	        						<li>	
+										<input  id="variables" name="variables" type="checkbox" value="PNACENT_M"/><label>% Población masculina nacida en la entidad</label>
+									</li> 
+								</ol> 
+							 	</div>
+      						<div class="block">	
+      						 	<ol>
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PNACOE"/> <label>% Población nacida en otra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PNACOE_M"/> <label>% Población masculina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PNACOE_F"/> <label>% Población femenina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PRES2005"/><label>% Población de 5 años y más residente <br/>en la en juniode 2005</label>
+		        					</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PRES2005_M"/><label>% Población masculina de 5 años y más residente <br/>en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PRES2005_F"/> <label>% Población femenina de 5 años y más residente <br/> en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PRESOE05"/> <label>% Población de 5 años y más residente en otra <br/> entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PRESOE05_M"/> <label>% Población masculina de 5 años y más residente <br/> en otra entidad enjunio de 2005</label>
+									</li>
+									<li> 	        					
+										<input  id="variables" name="variables" type="checkbox" value="PRESOE05_F"/> <label>% Población femenina de 5 años y más residente <br/>en otra entidad enjunio de 2005</label>
+									</li> 
+									Población indígena
+									<hr />
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3YM_HLI"/><label>% Población de 3 años y más que habla alguna<br/> lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3YM_HLI_M"/><label>% Población masculina de 3 años y más que habla <br/>alguna lengua indígena </label>
+									</li> 
+		        					<li>
+									 	<input  id="variables" name="variables" type="checkbox" value="P3YM_HLI_F"/><label>% Población femenina de 3 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3HLINHE"/><label>% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3HLI_HE"><label>% Población de 3 años y más que habla <br/>alguna lengua indígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3HLI_HE_M"><label>% Población masculina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variables" name="variables" type="checkbox" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P5_HLI_NHE"/><label>% Población de 5 años y más que habla <br/>alguna lengua indígena yno habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variables" name="variables" type="checkbox" value="P5_HLI_HE"/> <label>% Población de 5 años y más que habla <br/>alguna lengua indígena yhabla español</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PHOG_IND"><label>% Población en hogares censales indígenas</label>
+									</li> 
+									Discapacidad
+									<hr />
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCON_LIM"> <label>% Población con limitación en la actividad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCLIM_MOT"> <label>% Población con limitación para caminar o <br/>moverse, subir o bajar</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCLIM_VIS"> <label>% Población con limitación paraver, aún <br/>usando lentes</label>
+								 	</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCLIM_LENG"> <label>% Población con limitación parahablar, <br/>comunicarse o conversar</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCLIM_AUD"> <label>% Población con limitación paraescuchar</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCLIM_MOT2"> <label>% Población con limitación paravestirse, <br/>bañarse o comer</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCLIM_MEN"> <label>% Población con limitación paraponer <br/>atención o aprender cosassencillas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCLIM_MEN2"> <label>% Población con limitación mental</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PSIN_LIM"> <label>% Población sin limitación en la <br/>actividad</label>
+									</li> 
+									Características educativas
+									<hr />
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3A5_NOA"> <label>% Población de 3 a 5 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3A5_NOA_M"> <label>% Población masculina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P3A5_NOA_F"> <label>% Población femenina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P6A11_NOA"> <label>% Población de 6 a 11 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P6A11_NOAM"> <label>% Población masculina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P6A11_NOAF"> <label>% Población femenina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P12A14NOA"> <label>% Población de 12 a 14 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P12A14NOAM"> <label>% Población masculina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P12A14NOAF"> <label>% Población femenina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15A17A"> <label>% Población de 15 a 17 años que asiste a <br/>la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15A17A_M"> <label>% Población masculina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15A17A_F"> <label>% Población femenina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P18A24A"> <label>% Población de 18 a 24 años que asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P18A24A_M"> <label>% Población masculina de 18 a 24 años<br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P18A24A_F"> <label>% Población femenina de 18 a 24 años<br/> que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
+										</li> 
+								</ol>
+							 </div>
+      						<div class="block">
+							 	<ol>
+		       					<li>	
+										<input  id="variables" name="variables" type="checkbox" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
+								    </li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P8A14AN_F"> <label>% Población femenina  de 8 a 14 años que no<br/> saben leer yescribir</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15YM_AN"> <label>% Población de 15 años y más analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15YM_AN_M"> <label>% Población masculina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15YM_AN_F"> <label>% Población femenina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15YM_SE"> <label>% Población de 15 años y más sin <br/>escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15YM_SE_M"> <label>% Población masculina de 15 años y<br/> más sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15YM_SE_F"> <label>% Población femenina de 15 años y más<br/> sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15PRI_IN"> <label>% Población de 15 años y más con primaria <br/>incompleta</label>	
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15PRI_INM"> <label>% Población masculina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15PRI_INF"> <label>% Población femenina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15PRI_CO"> <label>% Población de 15 años y más conprimaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15PRI_COM"> <label>% Población masculina de 15 años y más<br/> con primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15PRI_COF"> <label>% Población femenina de 15 añosy más con<br/> primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15SEC_IN"> <label>% Población de 15 años y más consecundaria<br/> incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15SEC_INM"> <label>% Población masculina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15SEC_INF"> <label>% Población femenina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P15SEC_COF"> <label>% Población femenina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P18YM_PB"> <label>% Población de 18 años y más con educación<br/> pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P18YM_PB_M"> <label>% Población masculina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P18YM_PB_F"> <label>% Población femenina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="GRAPROES"> <label>% Grado promedio de escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="GRAPROES_M"> <label>% Grado promedio de escolaridad de la <br/>población masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="GRAPROES_F"> <label>% Grado promedio de escolaridadde la <br/>población femenina</label>
+									</li> 
+									Características económicas
+									<hr />
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PEA"> <label>% Población económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PEA_M"> <label>% Población masculina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PEA_F"> <label>% Población femenina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PE_INAC"> <label>% Población no económicamenteactiva</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PE_INAC_M"> <label>% Población masculina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PE_INAC_F"> <label>% Población femenina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="POCUPADA"> <label>% Población ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="POCUPADA_M"> <label>% Población masculina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="POCUPADA_F"> <label>% Población femenina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDESOCUP"> <label>% Población desocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDESOCUP_M"> <label>% Población masculinadesocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDESOCUP_F"> <label>% Población femenina desocupada</label>
+									</li>
+									Servicios de salud
+									<hr /> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PSINDER"> <label>% Población sin derechohabiencia a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDER_SS"> <label>% Población derechohabiente a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDER_IMSS"> <label>% Población derechohabiente del IMSS</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDER_ISTE"> <label>% Población derechohabiente del ISSSTE</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDER_ISTEE"> <label>% Población derechohabiente del ISSSTE estatal</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PDER_SEGP"> <label>% Población derechohabiente delseguro popular <br/> o Seguro Médicopara una Nueva Generación</label>
+									</li>
+									Situación conyugal
+									<hr /> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P12YM_SOLT"> <label>% Población soltera o nunca unidade 12 años <br/>y más</label>	
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P12YM_CASA"> <label>% Población casada o unida de 12 años y más</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="P12YM_SEPA"> <label>% Población que estuvo casada o unida <br/>de 12 años y más</label>
+									</li>
+									Religión
+									<hr/> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PCATOLICA"> <label>% Población con religión católica</label>
+								</li> 
+								</ol>
+							</div>
+      						<div class="block">
+      							<ol>
+		       						<li>
+										<input  id="variables" name="variables" type="checkbox" value="PNCATOLICA"> <label>% Protestantes, Evangélicas y Bíblicas<br/> diferentes deevangélicas</label>
+  							    	</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="POTRAS_REL"> <label>% Población con otras religiones <br/>diferentes a las anteriores</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PSIN_RELIG"> <label>% Población sin religión</label>
+									</li>
+									Hogares censales
+									<hr /> 
+		        					<!--<li>
+										<input  id="variables" name="variables" type="checkbox" value="TOTHOG"> <label>Total de hogares censales</label>
+									</li> -->
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="HOGJEF_M"> <label>% Hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="HOGJEF_F"> <label>% Hogares censales con jefatura femenina</label>
+									</li> 
+		        					<!--<li>
+										<input  id="variables" name="variables" type="checkbox" value="POBHOG"> <label>Población en hogares censales</label>
+									</li> -->
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PHOGJEF_M"> <label>% Población en hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PHOGJEF_F"> <label>% Población en hogares censalescon jefatura femenina</label>
+									</li>
+									Viviendas
+									<hr /> 
+		        					<!--<li>
+										<input  id="variables" name="variables" type="checkbox" value="VIVTOT"> <label>Total de viviendas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="TVIVHAB"> <label>Total de viviendas habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="TVIVPAR"> <label>Total de viviendas particulares</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VIVPAR_HAB"> <label>Viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="TVIVPARHAB"> <label>Total de viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VIVPAR_DES"> <label>Viviendas particulares deshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VIVPAR_UT"> <label>Viviendas particulares de usotemporal</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="OCUPVIVPAR"> <label>Ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PROM_OCUP"> <label>Promedio de ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="PRO_OCUP_C"> <label>Promedio de ocupantes por cuarto en <br/>viviendas particulareshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_PISODT"> <label>Viviendas particulares habitadas con <br/>piso de material diferente de tierra</label>
+									</li>  
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_PISOTI"> <label>Viviendas particulares habitadas con <br/>piso de tierra</label>
+									</li> -->
+									<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+									</li> 
+		        					<!--<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_1DOR"> <label>Viviendas particulares habitadas con un <br/>dormitorio</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_2YMASD"> <label>Viviendas particulares habitadas con dos<br/> dormitorios y más</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_1CUART"> <label>Viviendas particulares habitadas con <br/>un solo cuarto</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_2CUART"> <label>Viviendas particulares habitadas con <br/>dos cuartos</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_3YMASC"> <label>Viviendas particulares habitadas con <br/>3 cuartos y más</label>
+									</li>
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_C_ELEC"> <label>Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+									</li> -->
+									<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+									</li> 
+									<!--
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_S_ELEC"> <label>Viviendas particulares habitadas que <br/>no disponen de luz eléctrica</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_AGUADV"> <label>Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>										
+									</li> -->
+									<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>										
+									</li> 
+									<!--
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_AGUAFV"> <label>Viviendas particulares habitadas que <br/>no disponen de aguaentubada en el ámbito de lavivienda</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_EXCSA"> <label>Viviendas particulares habitadas que <br/>disponen de excusado osanitario</label>
+									</li> -->
+									<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+									</li>
+									
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
+									</li> 
+		        					<!--<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_NODREN"> <label>Viviendas particulares habitadas que <br/>no disponen de drenaje</label>								
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_C_SERV"> <label>Viviendas particulares habitadas que <br/>disponen de luz eléctrica,agua entubada de la red pública y drenaje</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_SNBIEN"> <label>Viviendas particulares habitadas <br/>sin ningún bien</label> 
+									</li>--> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					<!--<li>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_LAVAD"> <label>Viviendas particulares habitadas que<br/> disponen de lavadora</label>
+									</li> -->
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_telef"> <label>% Viviendas particulares habitadas que disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_cel"> <label>% Viviendas particulares habitadas que disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variables" name="variables" type="checkbox" value="p_inter"> <label>% Viviendas particulares habitadas que disponen<br/> de internet</label>
+									</li>  	
+								</ol>
+							</div>
+						</div>
+					</div> 
+					
+					<!-- DIMENSION X -->
+					<div id="dialogoDimensionX" title="Seleccione la variable del Eje X" style="width: 800px;height: 600px">
+						<div class="main_part_x">	
+							<div class="block">		
+								<ol>
+									Población
+									<hr />
+									<!--
+									<li>			
+										<input id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBTOT"/> <label>% Población total</label>
+									</li> 
+									-->
+	        						<li>			
+										<input id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBMAS"/> <label>% Población masculina</label>
+									</li> 
+	        						<li>
+										<input id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBFEM"/> <label>% Población femenina</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2"/> <label>% Población de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2_M"/> <label>% Población masculina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2_F"/> <label>% Población femenina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS"/> <label>% Población de  3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS_M"/> <label>% Población masculina de 3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS_F"/> <label>% Población femenina de 3 años y más</label>
+									</li>
+	        						<li> 	        						
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS"/> <label>% Población de  5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS_M"/> <label>% Población masculina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS_F"/> <label>% Población femenina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12YMAS"/> <label>% Población de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12YMAS_M"/> <label>% Población masculina de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS"/> <label>% Población de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS_M"/> <label>% Población masculina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS_F"/> <label>% Población femenina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS"/><label>% Población de 18 años y más </label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS_M"/> <label>% Población masculina de 18 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS_F"/><label>% Población femenina de 18 años y más</label>									
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5"/> <label>% Población de 3 a 5 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5_M"/> <label>% Población masculina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5_F"/> <label>% Población femenina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11"/> <label>% Población de 6 a 11 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11_M"/> <label>% Población masculina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11_F"/> <label>% Población femenina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14"/> <label>% Población de 8 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14_M"/> <label>% Población masculina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14_F"/> <label>% Población femenina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14"/> <label>% Población de 12 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14_M"/> <label>% Población masculina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14_F"/> <label>% Población femenina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17"/> <label>% Población de 15 a 17 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17_M"/> <label>% Población masculina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17_F"/> <label>% Población femenina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24"/> <label>% Población de 18 a 24 años</label>
+									</li> 								
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24_M"/><label>% Población masculina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24_F"/><label>% Población femenina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A49_F"/><label>% Población femenina de 15 a 49</label>
+									</li> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS"/><label>% Población de 60 años y más</label>
+									</li> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS_M"/><label>% Población masculina de 60 años</label>
+									</li> 
+	        						<li>	
+										<label> <input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS_F"/><label>% Población femenina de 60 años</label>
+									</li> 
+									<!--
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="REL_H_M"/><label>% Relación hombres-mujeres</label>
+									</li>
+									--> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB0_14"/><label>% Población de cero a 14 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB15_64"/><label>% Población de 15 a 64 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB65_MAS"/><label>% Población de 65 años y más</label>
+									</li> 
+									Fecundidad
+									<hr/>
+									<!--
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PROM_HNV"/><label>% Promedio de hijos nacidos vivos</label>
+									</li>
+									--> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT"/><label>% Población nacida en la entidad</label>
+									</li> 
+	        						<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_M"/><label>% Población masculina nacida enla entidad</label>
+									</li> 
+								</ol> 
+							 	</div>
+      						<div class="block">	
+      						 	<ol>
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE"/> <label>% Población nacida en otra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE_M"/> <label>% Población masculina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE_F"/> <label>% Población femenina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005"/><label>% Población de 5 años y más residente <br/>en la en juniode 2005</label>
+		        					</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005_M"/><label>% Población masculina de 5 años y más residente <br/>en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005_F"/> <label>% Población femenina de 5 años y más residente <br/> en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05"/> <label>% Población de 5 años y más residente en otra <br/> entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05_M"/> <label>% Población masculina de 5 años y más residente <br/> en otra entidad enjunio de 2005</label>
+									</li>
+									<li> 	        					
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05_F"/> <label>% Población femenina de 5 años y más residente <br/>en otra entidad enjunio de 2005</label>
+									</li> 
+									Población indígena
+									<hr />
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI"/><label>% Población de 3 años y más que habla alguna<br/> lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI_M"/><label>% Población masculina de 3 años y más que habla <br/>alguna lengua indígena </label>
+									</li> 
+		        					<li>
+									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI_F"/><label>% Población femenina de 3 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE"/><label>% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE"><label>% Población de 3 años y más que habla <br/>alguna lengua indígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE_M"><label>% Población masculina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI_NHE"/><label>% Población de 5 años y más que habla <br/>alguna lengua indígena yno habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI_HE"/> <label>% Población de 5 años y más que habla <br/>alguna lengua indígena yhabla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOG_IND"><label>% Población en hogares censales indígenas</label>
+									</li> 
+									Discapacidad
+									<hr />
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCON_LIM"> <label>% Población con limitación en la actividad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MOT"> <label>% Población con limitación para caminar o <br/>moverse, subir o bajar</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_VIS"> <label>% Población con limitación paraver, aún <br/>usando lentes</label>
+								 	</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_LENG"> <label>% Población con limitación parahablar, <br/>comunicarse o conversar</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_AUD"> <label>% Población con limitación paraescuchar</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MOT2"> <label>% Población con limitación paravestirse, <br/>bañarse o comer</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MEN"> <label>% Población con limitación paraponer <br/>atención o aprender cosassencillas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MEN2"> <label>% Población con limitación mental</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSIN_LIM"> <label>% Población sin limitación en la <br/>actividad</label>
+									</li> 
+									Características educativas
+									<hr />
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA"> <label>% Población de 3 a 5 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA_M"> <label>% Población masculina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA_F"> <label>% Población femenina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOA"> <label>% Población de 6 a 11 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOAM"> <label>% Población masculina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOAF"> <label>% Población femenina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOA"> <label>% Población de 12 a 14 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOAM"> <label>% Población masculina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOAF"> <label>% Población femenina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A"> <label>% Población de 15 a 17 años que asiste a <br/>la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A_M"> <label>% Población masculina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A_F"> <label>% Población femenina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A"> <label>% Población de 18 a 24 años que asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A_M"> <label>% Población masculina de 18 a 24 años<br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A_F"> <label>% Población femenina de 18 a 24 años<br/> que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
+										</li> 
+								</ol>
+							 </div>
+      						<div class="block">
+							 	<ol>
+		       					<li>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
+								    </li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN_F"> <label>% Población femenina  de 8 a 14 años que no<br/> saben leer yescribir</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN"> <label>% Población de 15 años y más analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN_M"> <label>% Población masculina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN_F"> <label>% Población femenina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE"> <label>% Población de 15 años y más sin <br/>escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE_M"> <label>% Población masculina de 15 años y<br/> más sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE_F"> <label>% Población femenina de 15 años y más<br/> sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_IN"> <label>% Población de 15 años y más con primaria <br/>incompleta</label>	
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_INM"> <label>% Población masculina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_INF"> <label>% Población femenina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_CO"> <label>% Población de 15 años y más conprimaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_COM"> <label>% Población masculina de 15 años y más<br/> con primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_COF"> <label>% Población femenina de 15 añosy más con<br/> primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_IN"> <label>% Población de 15 años y más consecundaria<br/> incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_INM"> <label>% Población masculina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_INF"> <label>% Población femenina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_COF"> <label>% Población femenina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB"> <label>% Población de 18 años y más con educación<br/> pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB_M"> <label>% Población masculina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB_F"> <label>% Población femenina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES"> <label>% Grado promedio de escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES_M"> <label>% Grado promedio de escolaridad de la <br/>población masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES_F"> <label>% Grado promedio de escolaridadde la <br/>población femenina</label>
+									</li> 
+									Características económicas
+									<hr />
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA"> <label>% Población económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA_M"> <label>% Población masculina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA_F"> <label>% Población femenina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC"> <label>% Población no económicamenteactiva</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC_M"> <label>% Población masculina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC_F"> <label>% Población femenina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA"> <label>% Población ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA_M"> <label>% Población masculina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA_F"> <label>% Población femenina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP"> <label>% Población desocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP_M"> <label>% Población masculinadesocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP_F"> <label>% Población femenina desocupada</label>
+									</li>
+									Servicios de salud
+									<hr /> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSINDER"> <label>% Población sin derechohabiencia a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_SS"> <label>% Población derechohabiente a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_IMSS"> <label>% Población derechohabiente del IMSS</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_ISTE"> <label>% Población derechohabiente del ISSSTE</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_ISTEE"> <label>% Población derechohabiente del ISSSTE estatal</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_SEGP"> <label>% Población derechohabiente delseguro popular <br/> o Seguro Médicopara una Nueva Generación</label>
+									</li>
+									Situación conyugal
+									<hr /> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_SOLT"> <label>% Población soltera o nunca unidade 12 años <br/>y más</label>	
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_CASA"> <label>% Población casada o unida de 12 años y más</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_SEPA"> <label>% Población que estuvo casada o unida <br/>de 12 años y más</label>
+									</li>
+									Religión
+									<hr/> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCATOLICA"> <label>% Población con religión católica</label>
+								</li> 
+								</ol>
+							</div>
+      						<div class="block">
+      							<ol>
+		       						<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNCATOLICA"> <label>% Protestantes, Evangélicas y Bíblicas<br/> diferentes deevangélicas</label>
+  							    	</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POTRAS_REL"> <label>% Población con otras religiones <br/>diferentes a las anteriores</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSIN_RELIG"> <label>% Población sin religión</label>
+									</li>
+									Hogares censales
+									<hr /> 
+		        					<!--<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="TOTHOG"> <label>% Total de hogares censales</label>
+									</li> 
+									-->
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="HOGJEF_M"> <label>% Hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="HOGJEF_F"> <label>% Hogares censales con jefatura femenina</label>
+									</li> 
+		        					<!--<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBHOG"> <label>% Población en hogares censales</label>
+									</li>--> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOGJEF_M"> <label>% Población en hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOGJEF_F"> <label>% Población en hogares censalescon jefatura femenina</label>
+									</li>
+									Viviendas
+									<hr /> 
+		        					<!--<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="VIVTOT"> <label>% Total de viviendas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="TVIVHAB"> <label>% Total de viviendas habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="TVIVPAR"> <label>% Total de viviendas particulares</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="VIVPAR_HAB"> <label>% Viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="TVIVPARHAB"> <label>% Total de viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="VIVPAR_DES"> <label>% Viviendas particulares deshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="VIVPAR_UT"> <label>% Viviendas particulares de usotemporal</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="OCUPVIVPAR"> <label>% Ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PROM_OCUP"> <label>% Promedio de ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRO_OCUP_C"> <label>% Promedio de ocupantes por cuarto en <br/>viviendas particulareshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="VPH_PISODT"> <label>% Viviendas particulares habitadas con <br/>piso de material diferente de tierra</label>
+									</li> 
+									-->
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_telef"> <label>% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_cel"> <label>% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_inter"> <label>% Viviendas particulares habitadasque disponen<br/> de internet</label>
+									</li>  	
+								</ol>
+							</div>
+						</div>
+					</div>
+					<!-- DIMENSION X -->
+					
+					<!-- DIMENSION Y -->
+					<div id="dialogoDimensionY" title="Seleccione la variable del Eje Y" style="width: 800px;height: 600px">
+						<div class="main_part_x">	
+							<div class="block">		
+								<ol>
+									Población
+									<hr />
+									<!--
+									<li>			
+										<input id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POBTOT"/> <label>% Población total</label>
+									</li> 
+									-->
+	        						<li>
+										<input id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POBMAS"/> <label>% Población masculina</label>
+									</li> 
+	        						<li>
+										<input id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POBFEM"/> <label>% Población femenina</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_0A2"/> <label>% Población de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_0A2_M"/> <label>% Población masculina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_0A2_F"/> <label>% Población femenina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_3YMAS"/> <label>% Población de  3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_3YMAS_M"/> <label>% Población masculina de 3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_3YMAS_F"/> <label>% Población femenina de 3 años y más</label>
+									</li>
+	        						<li> 	        						
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_5YMAS"/> <label>% Población de  5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_5YMAS_M"/> <label>% Población masculina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_5YMAS_F"/> <label>% Población femenina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_12YMAS"/> <label>% Población de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_12YMAS_M"/> <label>% Población masculina de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_15YMAS"/> <label>% Población de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_15YMAS_M"/> <label>% Población masculina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_15YMAS_F"/> <label>% Población femenina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_18YMAS"/><label>% Población de 18 años y más </label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_18YMAS_M"/> <label>% Población masculina de 18 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_18YMAS_F"/><label>% Población femenina de 18 años y más</label>									
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_3A5"/> <label>% Población de 3 a 5 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_3A5_M"/> <label>% Población masculina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_3A5_F"/> <label>% Población femenina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_6A11"/> <label>% Población de 6 a 11 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_6A11_M"/> <label>% Población masculina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_6A11_F"/> <label>% Población femenina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_8A14"/> <label>% Población de 8 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_8A14_M"/> <label>% Población masculina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_8A14_F"/> <label>% Población femenina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_12A14"/> <label>% Población de 12 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_12A14_M"/> <label>% Población masculina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_12A14_F"/> <label>% Población femenina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_15A17"/> <label>% Población de 15 a 17 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_15A17_M"/> <label>% Población masculina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_15A17_F"/> <label>% Población femenina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_18A24"/> <label>% Población de 18 a 24 años</label>
+									</li> 								
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_18A24_M"/><label>% Población masculina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_18A24_F"/><label>% Población femenina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_15A49_F"/><label>% Población femenina de 15 a 49</label>
+									</li> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_60YMAS"/><label>% Población de 60 años y más</label>
+									</li> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_60YMAS_M"/><label>% Población masculina de 60 años</label>
+									</li> 
+	        						<li>	
+										<label> <input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P_60YMAS_F"/><label>% Población femenina de 60 años</label>
+									</li> 
+									<!--
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="REL_H_M"/><label>% Relación hombres-mujeres</label>
+									</li>
+									--> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POB0_14"/><label>% Población de cero a 14 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POB15_64"/><label>% Población de 15 a 64 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POB65_MAS"/><label>% Población de 65 años y más</label>
+									</li> 
+									Fecundidad
+									<hr/>
+									<!--
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PROM_HNV"/><label>% Promedio de hijos nacidos vivos</label>
+									</li>
+									--> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACENT"/><label>% Población nacida en la entidad</label>
+									</li> 
+	        						<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACENT_M"/><label>% Población masculina nacida enla entidad</label>
+									</li> 
+								</ol> 
+							 	</div>
+      						<div class="block">	
+      						 	<ol>
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE"/> <label>% Población nacida en otra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE_M"/> <label>% Población masculina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE_F"/> <label>% Población femenina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRES2005"/><label>% Población de 5 años y más residente <br/>en la en juniode 2005</label>
+		        					</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRES2005_M"/><label>% Población masculina de 5 años y más residente <br/>en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRES2005_F"/> <label>% Población femenina de 5 años y más residente <br/> en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRESOE05"/> <label>% Población de 5 años y más residente en otra <br/> entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRESOE05_M"/> <label>% Población masculina de 5 años y más residente <br/> en otra entidad enjunio de 2005</label>
+									</li>
+									<li> 	        					
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRESOE05_F"/> <label>% Población femenina de 5 años y más residente <br/>en otra entidad enjunio de 2005</label>
+									</li> 
+									Población indígena
+									<hr />
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3YM_HLI"/><label>% Población de 3 años y más que habla alguna<br/> lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3YM_HLI_M"/><label>% Población masculina de 3 años y más que habla <br/>alguna lengua indígena </label>
+									</li> 
+		        					<li>
+									 	<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3YM_HLI_F"/><label>% Población femenina de 3 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE"/><label>% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLI_HE"><label>% Población de 3 años y más que habla <br/>alguna lengua indígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLI_HE_M"><label>% Población masculina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P5_HLI_NHE"/><label>% Población de 5 años y más que habla <br/>alguna lengua indígena yno habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P5_HLI_HE"/> <label>% Población de 5 años y más que habla <br/>alguna lengua indígena yhabla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PHOG_IND"><label>% Población en hogares censales indígenas</label>
+									</li> 
+									Discapacidad
+									<hr />
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCON_LIM"> <label>% Población con limitación en la actividad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCLIM_MOT"> <label>% Población con limitación para caminar o <br/>moverse, subir o bajar</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCLIM_VIS"> <label>% Población con limitación paraver, aún <br/>usando lentes</label>
+								 	</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCLIM_LENG"> <label>% Población con limitación parahablar, <br/>comunicarse o conversar</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCLIM_AUD"> <label>% Población con limitación paraescuchar</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCLIM_MOT2"> <label>% Población con limitación paravestirse, <br/>bañarse o comer</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCLIM_MEN"> <label>% Población con limitación paraponer <br/>atención o aprender cosassencillas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCLIM_MEN2"> <label>% Población con limitación mental</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PSIN_LIM"> <label>% Población sin limitación en la <br/>actividad</label>
+									</li> 
+									Características educativas
+									<hr />
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3A5_NOA"> <label>% Población de 3 a 5 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3A5_NOA_M"> <label>% Población masculina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3A5_NOA_F"> <label>% Población femenina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P6A11_NOA"> <label>% Población de 6 a 11 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P6A11_NOAM"> <label>% Población masculina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P6A11_NOAF"> <label>% Población femenina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P12A14NOA"> <label>% Población de 12 a 14 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P12A14NOAM"> <label>% Población masculina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P12A14NOAF"> <label>% Población femenina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15A17A"> <label>% Población de 15 a 17 años que asiste a <br/>la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15A17A_M"> <label>% Población masculina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15A17A_F"> <label>% Población femenina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P18A24A"> <label>% Población de 18 a 24 años que asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P18A24A_M"> <label>% Población masculina de 18 a 24 años<br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P18A24A_F"> <label>% Población femenina de 18 a 24 años<br/> que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
+										</li> 
+								</ol>
+							 </div>
+      						<div class="block">
+							 	<ol>
+		       					<li>	
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
+								    </li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P8A14AN_F"> <label>% Población femenina  de 8 a 14 años que no<br/> saben leer yescribir</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15YM_AN"> <label>% Población de 15 años y más analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15YM_AN_M"> <label>% Población masculina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15YM_AN_F"> <label>% Población femenina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15YM_SE"> <label>% Población de 15 años y más sin <br/>escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15YM_SE_M"> <label>% Población masculina de 15 años y<br/> más sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15YM_SE_F"> <label>% Población femenina de 15 años y más<br/> sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15PRI_IN"> <label>% Población de 15 años y más con primaria <br/>incompleta</label>	
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15PRI_INM"> <label>% Población masculina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15PRI_INF"> <label>% Población femenina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15PRI_CO"> <label>% Población de 15 años y más conprimaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15PRI_COM"> <label>% Población masculina de 15 años y más<br/> con primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15PRI_COF"> <label>% Población femenina de 15 añosy más con<br/> primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_IN"> <label>% Población de 15 años y más consecundaria<br/> incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_INM"> <label>% Población masculina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_INF"> <label>% Población femenina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_COF"> <label>% Población femenina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P18YM_PB"> <label>% Población de 18 años y más con educación<br/> pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P18YM_PB_M"> <label>% Población masculina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P18YM_PB_F"> <label>% Población femenina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="GRAPROES"> <label>% Grado promedio de escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="GRAPROES_M"> <label>% Grado promedio de escolaridad de la <br/>población masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="GRAPROES_F"> <label>% Grado promedio de escolaridadde la <br/>población femenina</label>
+									</li> 
+									Características económicas
+									<hr />
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PEA"> <label>% Población económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PEA_M"> <label>% Población masculina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PEA_F"> <label>% Población femenina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PE_INAC"> <label>% Población no económicamenteactiva</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PE_INAC_M"> <label>% Población masculina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PE_INAC_F"> <label>% Población femenina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POCUPADA"> <label>% Población ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POCUPADA_M"> <label>% Población masculina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POCUPADA_F"> <label>% Población femenina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDESOCUP"> <label>% Población desocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDESOCUP_M"> <label>% Población masculinadesocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDESOCUP_F"> <label>% Población femenina desocupada</label>
+									</li>
+									Servicios de salud
+									<hr /> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PSINDER"> <label>% Población sin derechohabiencia a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDER_SS"> <label>% Población derechohabiente a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDER_IMSS"> <label>% Población derechohabiente del IMSS</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDER_ISTE"> <label>% Población derechohabiente del ISSSTE</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDER_ISTEE"> <label>% Población derechohabiente del ISSSTE estatal</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PDER_SEGP"> <label>% Población derechohabiente delseguro popular <br/> o Seguro Médicopara una Nueva Generación</label>
+									</li>
+									Situación conyugal
+									<hr /> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P12YM_SOLT"> <label>% Población soltera o nunca unidade 12 años <br/>y más</label>	
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P12YM_CASA"> <label>% Población casada o unida de 12 años y más</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P12YM_SEPA"> <label>% Población que estuvo casada o unida <br/>de 12 años y más</label>
+									</li>
+									Religión
+									<hr/> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PCATOLICA"> <label>% Población con religión católica</label>
+								</li> 
+								</ol>
+							</div>
+      						<div class="block">
+      							<ol>
+		       						<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNCATOLICA"> <label>% Protestantes, Evangélicas y Bíblicas<br/> diferentes deevangélicas</label>
+  							    	</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POTRAS_REL"> <label>% Población con otras religiones <br/>diferentes a las anteriores</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PSIN_RELIG"> <label>% Población sin religión</label>
+									</li>
+									Hogares censales
+									<hr /> 
+		        					<!--<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="TOTHOG"> <label>% Total de hogares censales</label>
+									</li> 
+									-->
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="HOGJEF_M"> <label>% Hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="HOGJEF_F"> <label>% Hogares censales con jefatura femenina</label>
+									</li> 
+		        					<!--<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="POBHOG"> <label>% Población en hogares censales</label>
+									</li>--> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PHOGJEF_M"> <label>% Población en hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PHOGJEF_F"> <label>% Población en hogares censalescon jefatura femenina</label>
+									</li>
+									Viviendas
+									<hr /> 
+		        					<!--<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="VIVTOT"> <label>% Total de viviendas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="TVIVHAB"> <label>% Total de viviendas habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="TVIVPAR"> <label>% Total de viviendas particulares</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="VIVPAR_HAB"> <label>% Viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="TVIVPARHAB"> <label>% Total de viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="VIVPAR_DES"> <label>% Viviendas particulares deshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="VIVPAR_UT"> <label>% Viviendas particulares de usotemporal</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="OCUPVIVPAR"> <label>% Ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PROM_OCUP"> <label>% Promedio de ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRO_OCUP_C"> <label>% Promedio de ocupantes por cuarto en <br/>viviendas particulareshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="VPH_PISODT"> <label>% Viviendas particulares habitadas con <br/>piso de material diferente de tierra</label>
+									</li> 
+									-->
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_telef"> <label>% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_cel"> <label>% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_inter"> <label>% Viviendas particulares habitadasque disponen<br/> de internet</label>
+									</li>  	
+								</ol>
+							</div>
+						</div>
+					</div>
+					<!-- DIMENSION Y -->
+					
+					<!-- DIMENSION Z -->
+					<div id="dialogoDimensionZ" title="Seleccione la variable del Tamaño" style="width: 800px;height: 600px">
+						
+<div class="main_part_x">	
+							<div class="block">		
+								<ol>
+									Población
+									<hr />
+									<!--
+									<li>			
+										<input id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POBTOT"/> <label>% Población total</label>
+									</li> 
+									-->
+	        						<li>
+										<input id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POBMAS"/> <label>% Población masculina</label>
+									</li> 
+	        						<li>
+										<input id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POBFEM"/> <label>% Población femenina</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_0A2"/> <label>% Población de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_0A2_M"/> <label>% Población masculina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_0A2_F"/> <label>% Población femenina de 0 a 2 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_3YMAS"/> <label>% Población de  3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_3YMAS_M"/> <label>% Población masculina de 3 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_3YMAS_F"/> <label>% Población femenina de 3 años y más</label>
+									</li>
+	        						<li> 	        						
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_5YMAS"/> <label>% Población de  5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_5YMAS_M"/> <label>% Población masculina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_5YMAS_F"/> <label>% Población femenina de 5 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_12YMAS"/> <label>% Población de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_12YMAS_M"/> <label>% Población masculina de 12 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_15YMAS"/> <label>% Población de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_15YMAS_M"/> <label>% Población masculina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_15YMAS_F"/> <label>% Población femenina de 15 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_18YMAS"/><label>% Población de 18 años y más </label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_18YMAS_M"/> <label>% Población masculina de 18 años y más</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_18YMAS_F"/><label>% Población femenina de 18 años y más</label>									
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_3A5"/> <label>% Población de 3 a 5 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_3A5_M"/> <label>% Población masculina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_3A5_F"/> <label>% Población femenina de 3 a 5</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_6A11"/> <label>% Población de 6 a 11 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_6A11_M"/> <label>% Población masculina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_6A11_F"/> <label>% Población femenina de 6 a 11</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_8A14"/> <label>% Población de 8 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_8A14_M"/> <label>% Población masculina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_8A14_F"/> <label>% Población femenina de 8 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_12A14"/> <label>% Población de 12 a 14 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_12A14_M"/> <label>% Población masculina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_12A14_F"/> <label>% Población femenina de 12 a 14</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_15A17"/> <label>% Población de 15 a 17 años</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_15A17_M"/> <label>% Población masculina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_15A17_F"/> <label>% Población femenina de 15 a 17</label>
+									</li> 
+	        						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_18A24"/> <label>% Población de 18 a 24 años</label>
+									</li> 								
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_18A24_M"/><label>% Población masculina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_18A24_F"/><label>% Población femenina de 18 a 24</label>
+									</li> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_15A49_F"/><label>% Población femenina de 15 a 49</label>
+									</li> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_60YMAS"/><label>% Población de 60 años y más</label>
+									</li> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_60YMAS_M"/><label>% Población masculina de 60 años</label>
+									</li> 
+	        						<li>	
+										<label> <input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P_60YMAS_F"/><label>% Población femenina de 60 años</label>
+									</li> 
+									<!--
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="REL_H_M"/><label>% Relación hombres-mujeres</label>
+									</li>
+									--> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POB0_14"/><label>% Población de cero a 14 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POB15_64"/><label>% Población de 15 a 64 años</label>
+									</li> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POB65_MAS"/><label>% Población de 65 años y más</label>
+									</li> 
+									Fecundidad
+									<hr/>
+									<!--
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PROM_HNV"/><label>% Promedio de hijos nacidos vivos</label>
+									</li>
+									--> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACENT"/><label>% Población nacida en la entidad</label>
+									</li> 
+	        						<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACENT_M"/><label>% Población masculina nacida enla entidad</label>
+									</li> 
+								</ol> 
+							 	</div>
+      						<div class="block">	
+      						 	<ol>
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACOE"/> <label>% Población nacida en otra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACOE_M"/> <label>% Población masculina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACOE_F"/> <label>% Población femenina nacida enotra entidad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PRES2005"/><label>% Población de 5 años y más residente <br/>en la en juniode 2005</label>
+		        					</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PRES2005_M"/><label>% Población masculina de 5 años y más residente <br/>en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PRES2005_F"/> <label>% Población femenina de 5 años y más residente <br/> en la entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PRESOE05"/> <label>% Población de 5 años y más residente en otra <br/> entidad enjunio de 2005</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PRESOE05_M"/> <label>% Población masculina de 5 años y más residente <br/> en otra entidad enjunio de 2005</label>
+									</li>
+									<li> 	        					
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PRESOE05_F"/> <label>% Población femenina de 5 años y más residente <br/>en otra entidad enjunio de 2005</label>
+									</li> 
+									Población indígena
+									<hr />
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3YM_HLI"/><label>% Población de 3 años y más que habla alguna<br/> lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3YM_HLI_M"/><label>% Población masculina de 3 años y más que habla <br/>alguna lengua indígena </label>
+									</li> 
+		        					<li>
+									 	<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3YM_HLI_F"/><label>% Población femenina de 3 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3HLINHE"/><label>% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3HLI_HE"><label>% Población de 3 años y más que habla <br/>alguna lengua indígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3HLI_HE_M"><label>% Población masculina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P5_HLI_NHE"/><label>% Población de 5 años y más que habla <br/>alguna lengua indígena yno habla español</label>
+									</li> 
+		        					<li>
+									 	<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P5_HLI_HE"/> <label>% Población de 5 años y más que habla <br/>alguna lengua indígena yhabla español</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PHOG_IND"><label>% Población en hogares censales indígenas</label>
+									</li> 
+									Discapacidad
+									<hr />
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCON_LIM"> <label>% Población con limitación en la actividad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCLIM_MOT"> <label>% Población con limitación para caminar o <br/>moverse, subir o bajar</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCLIM_VIS"> <label>% Población con limitación paraver, aún <br/>usando lentes</label>
+								 	</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCLIM_LENG"> <label>% Población con limitación parahablar, <br/>comunicarse o conversar</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCLIM_AUD"> <label>% Población con limitación paraescuchar</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCLIM_MOT2"> <label>% Población con limitación paravestirse, <br/>bañarse o comer</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCLIM_MEN"> <label>% Población con limitación paraponer <br/>atención o aprender cosassencillas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCLIM_MEN2"> <label>% Población con limitación mental</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PSIN_LIM"> <label>% Población sin limitación en la <br/>actividad</label>
+									</li> 
+									Características educativas
+									<hr />
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3A5_NOA"> <label>% Población de 3 a 5 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3A5_NOA_M"> <label>% Población masculina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3A5_NOA_F"> <label>% Población femenina de 3 a 5 años <br/>que no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P6A11_NOA"> <label>% Población de 6 a 11 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P6A11_NOAM"> <label>% Población masculina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P6A11_NOAF"> <label>% Población femenina de 6 a 11 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P12A14NOA"> <label>% Población de 12 a 14 años que no asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P12A14NOAM"> <label>% Población masculina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P12A14NOAF"> <label>% Población femenina de 12 a 14 años que <br/>no asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15A17A"> <label>% Población de 15 a 17 años que asiste a <br/>la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15A17A_M"> <label>% Población masculina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15A17A_F"> <label>% Población femenina de 15 a 17 años <br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P18A24A"> <label>% Población de 18 a 24 años que asiste <br/>a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P18A24A_M"> <label>% Población masculina de 18 a 24 años<br/>que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P18A24A_F"> <label>% Población femenina de 18 a 24 años<br/> que asiste a la escuela</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
+										</li> 
+								</ol>
+							 </div>
+      						<div class="block">
+							 	<ol>
+		       					<li>	
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
+								    </li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P8A14AN_F"> <label>% Población femenina  de 8 a 14 años que no<br/> saben leer yescribir</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15YM_AN"> <label>% Población de 15 años y más analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15YM_AN_M"> <label>% Población masculina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15YM_AN_F"> <label>% Población femenina de 15 años y más<br/> analfabeta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15YM_SE"> <label>% Población de 15 años y más sin <br/>escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15YM_SE_M"> <label>% Población masculina de 15 años y<br/> más sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15YM_SE_F"> <label>% Población femenina de 15 años y más<br/> sin escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15PRI_IN"> <label>% Población de 15 años y más con primaria <br/>incompleta</label>	
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15PRI_INM"> <label>% Población masculina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15PRI_INF"> <label>% Población femenina de 15 años y más<br/> con primaria incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15PRI_CO"> <label>% Población de 15 años y más conprimaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15PRI_COM"> <label>% Población masculina de 15 años y más<br/> con primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15PRI_COF"> <label>% Población femenina de 15 añosy más con<br/> primaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_IN"> <label>% Población de 15 años y más consecundaria<br/> incompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_INM"> <label>% Población masculina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_INF"> <label>% Población femenina de 15 años y más con<br/> secundariaincompleta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_COF"> <label>% Población femenina de 15 años y más con<br/> secundaria completa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P18YM_PB"> <label>% Población de 18 años y más con educación<br/> pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P18YM_PB_M"> <label>% Población masculina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P18YM_PB_F"> <label>% Población femenina de 18 años y más con<br/> educación pos-básica</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="GRAPROES"> <label>% Grado promedio de escolaridad</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="GRAPROES_M"> <label>% Grado promedio de escolaridad de la <br/>población masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="GRAPROES_F"> <label>% Grado promedio de escolaridadde la <br/>población femenina</label>
+									</li> 
+									Características económicas
+									<hr />
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PEA"> <label>% Población económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PEA_M"> <label>% Población masculina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PEA_F"> <label>% Población femenina económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PE_INAC"> <label>% Población no económicamenteactiva</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PE_INAC_M"> <label>% Población masculina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PE_INAC_F"> <label>% Población femenina no económicamente activa</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POCUPADA"> <label>% Población ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POCUPADA_M"> <label>% Población masculina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POCUPADA_F"> <label>% Población femenina ocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDESOCUP"> <label>% Población desocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDESOCUP_M"> <label>% Población masculinadesocupada</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDESOCUP_F"> <label>% Población femenina desocupada</label>
+									</li>
+									Servicios de salud
+									<hr /> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PSINDER"> <label>% Población sin derechohabiencia a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDER_SS"> <label>% Población derechohabiente a servicios <br/>de salud</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDER_IMSS"> <label>% Población derechohabiente del IMSS</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDER_ISTE"> <label>% Población derechohabiente del ISSSTE</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDER_ISTEE"> <label>% Población derechohabiente del ISSSTE estatal</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PDER_SEGP"> <label>% Población derechohabiente delseguro popular <br/> o Seguro Médicopara una Nueva Generación</label>
+									</li>
+									Situación conyugal
+									<hr /> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P12YM_SOLT"> <label>% Población soltera o nunca unidade 12 años <br/>y más</label>	
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P12YM_CASA"> <label>% Población casada o unida de 12 años y más</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P12YM_SEPA"> <label>% Población que estuvo casada o unida <br/>de 12 años y más</label>
+									</li>
+									Religión
+									<hr/> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PCATOLICA"> <label>% Población con religión católica</label>
+								</li> 
+								</ol>
+							</div>
+      						<div class="block">
+      							<ol>
+		       						<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNCATOLICA"> <label>% Protestantes, Evangélicas y Bíblicas<br/> diferentes deevangélicas</label>
+  							    	</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POTRAS_REL"> <label>% Población con otras religiones <br/>diferentes a las anteriores</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PSIN_RELIG"> <label>% Población sin religión</label>
+									</li>
+									Hogares censales
+									<hr /> 
+		        					<!--<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="TOTHOG"> <label>% Total de hogares censales</label>
+									</li> 
+									-->
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="HOGJEF_M"> <label>% Hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="HOGJEF_F"> <label>% Hogares censales con jefatura femenina</label>
+									</li> 
+		        					<!--<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="POBHOG"> <label>% Población en hogares censales</label>
+									</li>--> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PHOGJEF_M"> <label>% Población en hogares censales con jefatura masculina</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PHOGJEF_F"> <label>% Población en hogares censalescon jefatura femenina</label>
+									</li>
+									Viviendas
+									<hr /> 
+		        					<!--<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="VIVTOT"> <label>% Total de viviendas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="TVIVHAB"> <label>% Total de viviendas habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="TVIVPAR"> <label>% Total de viviendas particulares</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="VIVPAR_HAB"> <label>% Viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="TVIVPARHAB"> <label>% Total de viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="VIVPAR_DES"> <label>% Viviendas particulares deshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="VIVPAR_UT"> <label>% Viviendas particulares de usotemporal</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="OCUPVIVPAR"> <label>% Ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PROM_OCUP"> <label>% Promedio de ocupantes en viviendas particulares habitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PRO_OCUP_C"> <label>% Promedio de ocupantes por cuarto en <br/>viviendas particulareshabitadas</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="VPH_PISODT"> <label>% Viviendas particulares habitadas con <br/>piso de material diferente de tierra</label>
+									</li> 
+									-->
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_telef"> <label>% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_cel"> <label>% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_inter"> <label>% Viviendas particulares habitadasque disponen<br/> de internet</label>
+									</li>  	
+								</ol>
+							</div>
+						</div>
+					</div>
+					<!-- DIMENSION Z -->
+</body>
+</html>
