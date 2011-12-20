@@ -19,7 +19,7 @@
 	<script src="js/itemListStratification.js" type="text/javascript" charset="utf-8"></script> <!-- " MANEJO DE LA ESTRATIFICACION" -->
 	
 	<STYLE type="text/css">
-   		label { white-space:nowrap; font-family: "Arial Narrow";font-size: 9px; width: 100px}
+   		label { white-space:nowrap; font-family: "Arial Narrow";font-size: 8px; width: 100px}
    		.vertical {
 		  -webkit-transform: rotate(-90deg);
 		  -moz-transform: rotate(-90deg);
@@ -28,7 +28,9 @@
 		  font-size:1.1em;
 		  position: relative;
 		  float: left;
-		  vertical-align: middle;		  
+		  font-family: "Arial Narrow";
+		  font-size: 12px;
+		  padding-bottom: -50px;
 		}
 		.block {
 		  width: 200px;
@@ -533,6 +535,7 @@
         
 			if(dimension=="X")
 			{
+				$("#etiquetaEjeX").text("Eje X: "+$("#"+varx+"_TEXT").text());
 				if(typeof(varx) != "undefined")
 				{       varx = varx.toLowerCase();
 						var dato;
@@ -558,6 +561,7 @@
 			};
 			if(dimension=="Y")
 			{
+				$("#etiquetaEjeY").text("Eje Y: "+$("#"+vary+"_TEXT").text());
 				if(typeof(vary) != "undefined")
 				{
 						vary = vary.toLowerCase();
@@ -585,6 +589,7 @@
 			};
 			if(dimension=="Z")
 			{
+				$("#etiquetaEjeZ").text("Tamaño : "+$("#"+varz+"_TEXT").text());
 				if(typeof(varz) != "undefined")
 				{
 						varz = varz.toLowerCase();
@@ -789,21 +794,37 @@
 					                </center>    
 									</div>
 									<div id="tabs-2">
-										<center>
-					                          
-					                          <label id="etiquetaEjeZ" name="etiquetaEjeZ" style="font-size: 10pt;">Tamaño:</label>
-										</center>
-										<center>
-											<button style="float: left" onClick="openDialogDimension('Z');">Tamaño</button>
-											<button style="float: left" onClick="openDialogDimension('X');">Eje X</button>
-											<button style="float: left" onClick="openDialogDimension('Y');">Eje Y</button>
-											<div style="width: 650px">	
-					                        <label id="etiquetaEjeY" name="etiquetaEjeY" class="vertical" style="font-size: 10pt">Eje Y: % de Viviendas con piso de tierra, disponoble en el hogar.</label> <div id="chart"></div>
-					                        </div> 
-					                    </center>
-					                    <center>
+									<center>	
+										<table border="0">
+										<tr>
+										<td></td>
+										<td></td>
+										<td align="center"><label id="etiquetaEjeZ" name="etiquetaEjeZ" style="font-size: 10pt;">Tamaño:</label></td>
+										</tr>
+										<tr>
+										<td align="center">
+											<button onClick="openDialogDimension('Z');">Tamaño</button><br />
+											<button onClick="openDialogDimension('X');">Eje X</button><br />
+											<button onClick="openDialogDimension('Y');">Eje Y</button> 
+										</td>
+										<td align="left" width="100px">
+											<div  id="etiquetaEjeY" name="etiquetaEjeY" class="vertical" style="overflow: inherit; width: 200px;padding-top: 100px;">
+												Eje Y:
+											</div>
+										</td>
+										<td align="center">
+											<div id="chart"></div>
+										</td>
+										</tr>
+										<tr>
+										<td></td>
+										<td></td>
+										<td align="center">
 											<label id="etiquetaEjeX" name="etiquetaEjeX" style="font-size: 10pt">Eje X:</label>
-					                    </center>
+										</td>
+										</tr>
+										</table>
+									 </center>										
 									</div>	
 					                <div id="tabs-3" >
 									<center>  	
@@ -1549,126 +1570,126 @@
 									</li> 
 									-->
 	        						<li>			
-										<input id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBMAS"/> <label>% Población masculina</label>
+										<input id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBMAS"/> <label id="POBMAS_TEXT">% Población masculina</label>
 									</li> 
 	        						<li>
-										<input id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBFEM"/> <label>% Población femenina</label>
+										<input id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBFEM"/> <label id="POBFEM_TEXT">% Población femenina</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2"/> <label>% Población de 0 a 2 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2"/> <label id="P_0A2_TEXT">% Población de 0 a 2 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2_M"/> <label>% Población masculina de 0 a 2 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2_M"/> <label id="P_0A2_M_TEXT">% Población masculina de 0 a 2 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2_F"/> <label>% Población femenina de 0 a 2 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_0A2_F"/> <label id="P_0A2_F_TEXT">% Población femenina de 0 a 2 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS"/> <label>% Población de  3 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS"/> <label id="P_3YMAS_TEXT">% Población de  3 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS_M"/> <label>% Población masculina de 3 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS_M"/> <label id="P_3YMAS_M_TEXT">% Población masculina de 3 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS_F"/> <label>% Población femenina de 3 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3YMAS_F"/> <label id="P_3YMAS_F_TEXT">% Población femenina de 3 años y más</label>
 									</li>
 	        						<li> 	        						
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS"/> <label>% Población de  5 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS"/> <label id="P_5YMAS_TEXT">% Población de  5 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS_M"/> <label>% Población masculina de 5 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS_M"/> <label id="P_5YMAS_M_TEXT">% Población masculina de 5 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS_F"/> <label>% Población femenina de 5 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_5YMAS_F"/> <label id="P_5YMAS_F_TEXT">% Población femenina de 5 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12YMAS"/> <label>% Población de 12 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12YMAS"/> <label id="P_12YMAS_TEXT">% Población de 12 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12YMAS_M"/> <label>% Población masculina de 12 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12YMAS_M"/> <label id="P_12YMAS_M_TEXT">% Población masculina de 12 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS"/> <label>% Población de 15 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS"/> <label id="P_15YMAS_TEXT">% Población de 15 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS_M"/> <label>% Población masculina de 15 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS_M"/> <label id="P_15YMAS_M_TEXT">% Población masculina de 15 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS_F"/> <label>% Población femenina de 15 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15YMAS_F"/> <label id="P_15YMAS_F_TEXT">% Población femenina de 15 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS"/><label>% Población de 18 años y más </label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS"/><label id="P_18YMAS_TEXT">% Población de 18 años y más </label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS_M"/> <label>% Población masculina de 18 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS_M"/> <label id="P_18YMAS_M_TEXT">% Población masculina de 18 años y más</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS_F"/><label>% Población femenina de 18 años y más</label>									
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18YMAS_F"/><label id="P_18YMAS_F_TEXT">% Población femenina de 18 años y más</label>									
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5"/> <label>% Población de 3 a 5 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5"/> <label id="P_3A5_TEXT">% Población de 3 a 5 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5_M"/> <label>% Población masculina de 3 a 5</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5_M"/> <label id="P_3A5_M_TEXT">% Población masculina de 3 a 5</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5_F"/> <label>% Población femenina de 3 a 5</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_3A5_F"/> <label id="P_3A5_F_TEXT">% Población femenina de 3 a 5</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11"/> <label>% Población de 6 a 11 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11"/> <label id="P_6A11_TEXT">% Población de 6 a 11 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11_M"/> <label>% Población masculina de 6 a 11</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11_M"/> <label id="P_6A11_M_TEXT">% Población masculina de 6 a 11</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11_F"/> <label>% Población femenina de 6 a 11</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_6A11_F"/> <label id="P_6A11_F_TEXT">% Población femenina de 6 a 11</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14"/> <label>% Población de 8 a 14 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14"/> <label id="P_8A14_TEXT">% Población de 8 a 14 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14_M"/> <label>% Población masculina de 8 a 14</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14_M"/> <label id="P_8A14_M_TEXT">% Población masculina de 8 a 14</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14_F"/> <label>% Población femenina de 8 a 14</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_8A14_F"/> <label id="P_8A14_F_TEXT">% Población femenina de 8 a 14</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14"/> <label>% Población de 12 a 14 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14"/> <label id="P_12A14_TEXT">% Población de 12 a 14 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14_M"/> <label>% Población masculina de 12 a 14</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14_M"/> <label id="P_12A14_M_TEXT">% Población masculina de 12 a 14</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14_F"/> <label>% Población femenina de 12 a 14</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_12A14_F"/> <label id="P_12A14_F_TEXT">% Población femenina de 12 a 14</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17"/> <label>% Población de 15 a 17 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17"/> <label id="P_15A17_TEXT">% Población de 15 a 17 años</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17_M"/> <label>% Población masculina de 15 a 17</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17_M"/> <label id="P_15A17_M_TEXT">% Población masculina de 15 a 17</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17_F"/> <label>% Población femenina de 15 a 17</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A17_F"/> <label id="P_15A17_F_TEXT">% Población femenina de 15 a 17</label>
 									</li> 
 	        						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24"/> <label>% Población de 18 a 24 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24"/> <label id="P_18A24_TEXT">% Población de 18 a 24 años</label>
 									</li> 								
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24_M"/><label>% Población masculina de 18 a 24</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24_M"/><label id="P_18A24_M_TEXT">% Población masculina de 18 a 24</label>
 									</li> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24_F"/><label>% Población femenina de 18 a 24</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_18A24_F"/><label id="P_18A24_F_TEXT">% Población femenina de 18 a 24</label>
 									</li> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A49_F"/><label>% Población femenina de 15 a 49</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_15A49_F"/><label id="P_15A49_F_TEXT">% Población femenina de 15 a 49</label>
 									</li> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS"/><label>% Población de 60 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS"/><label id="P_60YMAS_TEXT">% Población de 60 años y más</label>
 									</li> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS_M"/><label>% Población masculina de 60 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS_M"/><label id="P_60YMAS_M_TEXT">% Población masculina de 60 años</label>
 									</li> 
 	        						<li>	
-										<label> <input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS_F"/><label>% Población femenina de 60 años</label>
+										<label> <input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P_60YMAS_F"/><label id="P_60YMAS_F_TEXT">% Población femenina de 60 años</label>
 									</li> 
 									<!--
 	        						<li>	
@@ -1676,13 +1697,13 @@
 									</li>
 									--> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB0_14"/><label>% Población de cero a 14 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB0_14"/><label id="POB0_14_TEXT">% Población de cero a 14 años</label>
 									</li> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB15_64"/><label>% Población de 15 a 64 años</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB15_64"/><label id="POB15_64_TEXT">% Población de 15 a 64 años</label>
 									</li> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB65_MAS"/><label>% Población de 65 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POB65_MAS"/><label id="POB65_MAS_TEXT">% Población de 65 años y más</label>
 									</li> 
 									Fecundidad
 									<hr/>
@@ -1692,333 +1713,333 @@
 									</li>
 									--> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT"/><label>% Población nacida en la entidad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT"/><label id="PNACENT_TEXT">% Población nacida en la entidad</label>
 									</li> 
 	        						<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_M"/><label>% Población masculina nacida enla entidad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_M"/><label id="PNACENT_M_TEXT">% Población masculina nacida enla entidad</label>
 									</li> 
 								</ol> 
 							 	</div>
       						<div class="block">	
       						 	<ol>
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_F"/> <label id="PNACENT_F_TEXT">% Población femenina nacida en la entidad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE"/> <label>% Población nacida en otra entidad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE"/> <label id="PNACOE_TEXT">% Población nacida en otra entidad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE_M"/> <label>% Población masculina nacida enotra entidad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE_M"/> <label id="PNACOE_M_TEXT">% Población masculina nacida enotra entidad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE_F"/> <label>% Población femenina nacida enotra entidad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACOE_F"/> <label id="PNACOE_F_TEXT">% Población femenina nacida enotra entidad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005"/><label>% Población de 5 años y más residente <br/>en la en juniode 2005</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005"/><label id="PRES2005_TEXT">% Población de 5 años y más residente <br/>en la en juniode 2005</label>
 		        					</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005_M"/><label>% Población masculina de 5 años y más residente <br/>en la entidad enjunio de 2005</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005_M"/><label id="PRES2005_M_TEXT">% Población masculina de 5 años y más residente <br/>en la entidad enjunio de 2005</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005_F"/> <label>% Población femenina de 5 años y más residente <br/> en la entidad enjunio de 2005</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRES2005_F"/> <label id="PRES2005_F_TEXT">% Población femenina de 5 años y más residente <br/> en la entidad enjunio de 2005</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05"/> <label>% Población de 5 años y más residente en otra <br/> entidad enjunio de 2005</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05"/> <label id="PRESOE05_TEXT">% Población de 5 años y más residente en otra <br/> entidad enjunio de 2005</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05_M"/> <label>% Población masculina de 5 años y más residente <br/> en otra entidad enjunio de 2005</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05_M"/> <label id="PRESOE05_M_TEXT">% Población masculina de 5 años y más residente <br/> en otra entidad enjunio de 2005</label>
 									</li>
 									<li> 	        					
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05_F"/> <label>% Población femenina de 5 años y más residente <br/>en otra entidad enjunio de 2005</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PRESOE05_F"/> <label id="PRESOE05_F_TEXT">% Población femenina de 5 años y más residente <br/>en otra entidad enjunio de 2005</label>
 									</li> 
 									Población indígena
 									<hr />
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI"/><label>% Población de 3 años y más que habla alguna<br/> lengua indígena</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI"/><label id="P3YM_HLI_TEXT">% Población de 3 años y más que habla alguna<br/> lengua indígena</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI_M"/><label>% Población masculina de 3 años y más que habla <br/>alguna lengua indígena </label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI_M"/><label id="P3YM_HLI_M_TEXT">% Población masculina de 3 años y más que habla <br/>alguna lengua indígena </label>
 									</li> 
 		        					<li>
-									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI_F"/><label>% Población femenina de 3 años y más que habla <br/>alguna lengua indígena</label>
+									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3YM_HLI_F"/><label id="P3YM_HLI_F_TEXT">% Población femenina de 3 años y más que habla <br/>alguna lengua indígena</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE"/><label>% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE"/><label id="P3HLINHE_TEXT">% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE_M"/><label id="P3HLINHE_M_TEXT">% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLINHE_F"/><label id="P3HLINHE_F_TEXT">% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE"><label>% Población de 3 años y más que habla <br/>alguna lengua indígena y habla español</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE"><label id="P3HLI_HE_TEXT">% Población de 3 años y más que habla <br/>alguna lengua indígena y habla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE_M"><label>% Población masculina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE_M"><label id="P3HLI_HE_M_TEXT">% Población masculina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE_F"><label id="P3HLI_HE_F_TEXT">% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
 									</li> 
 		        					<li>
-									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
+									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI"><label id="P5_HLI_TEXT">% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI_NHE"/><label>% Población de 5 años y más que habla <br/>alguna lengua indígena yno habla español</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI_NHE"/><label id="P5_HLI_NHE_TEXT">% Población de 5 años y más que habla <br/>alguna lengua indígena yno habla español</label>
 									</li> 
 		        					<li>
-									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI_HE"/> <label>% Población de 5 años y más que habla <br/>alguna lengua indígena yhabla español</label>
+									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI_HE"/> <label id="P5_HLI_HE_TEXT">% Población de 5 años y más que habla <br/>alguna lengua indígena yhabla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOG_IND"><label>% Población en hogares censales indígenas</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOG_IND"><label id="PHOG_IND_TEXT">% Población en hogares censales indígenas</label>
 									</li> 
 									Discapacidad
 									<hr />
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCON_LIM"> <label>% Población con limitación en la actividad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCON_LIM"> <label id="PCON_LIM_TEXT">% Población con limitación en la actividad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MOT"> <label>% Población con limitación para caminar o <br/>moverse, subir o bajar</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MOT"> <label id="PCLIM_MOT_TEXT">% Población con limitación para caminar o <br/>moverse, subir o bajar</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_VIS"> <label>% Población con limitación paraver, aún <br/>usando lentes</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_VIS"> <label id="PCLIM_VIS_TEXT">% Población con limitación paraver, aún <br/>usando lentes</label>
 								 	</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_LENG"> <label>% Población con limitación parahablar, <br/>comunicarse o conversar</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_LENG"> <label id="PCLIM_LENG_TEXT">% Población con limitación parahablar, <br/>comunicarse o conversar</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_AUD"> <label>% Población con limitación paraescuchar</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_AUD"> <label id="PCLIM_AUD_TEXT">% Población con limitación paraescuchar</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MOT2"> <label>% Población con limitación paravestirse, <br/>bañarse o comer</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MOT2"> <label id="PCLIM_MOT2_TEXT">% Población con limitación paravestirse, <br/>bañarse o comer</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MEN"> <label>% Población con limitación paraponer <br/>atención o aprender cosassencillas</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MEN"> <label id="PCLIM_MEN_TEXT">% Población con limitación paraponer <br/>atención o aprender cosassencillas</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MEN2"> <label>% Población con limitación mental</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCLIM_MEN2"> <label id="PCLIM_MEN2_TEXT">% Población con limitación mental</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSIN_LIM"> <label>% Población sin limitación en la <br/>actividad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSIN_LIM"> <label id="PSIN_LIM_TEXT">% Población sin limitación en la <br/>actividad</label>
 									</li> 
 									Características educativas
 									<hr />
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA"> <label>% Población de 3 a 5 años que <br/>no asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA"> <label id="P3A5_NOA_TEXT">% Población de 3 a 5 años que <br/>no asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA_M"> <label>% Población masculina de 3 a 5 años <br/>que no asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA_M"> <label id="P3A5_NOA_M_TEXT">% Población masculina de 3 a 5 años <br/>que no asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA_F"> <label>% Población femenina de 3 a 5 años <br/>que no asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3A5_NOA_F"> <label id="P3A5_NOA_F_TEXT">% Población femenina de 3 a 5 años <br/>que no asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOA"> <label>% Población de 6 a 11 años que no asiste <br/>a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOA"> <label id="P6A11_NOA_TEXT">% Población de 6 a 11 años que no asiste <br/>a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOAM"> <label>% Población masculina de 6 a 11 años que <br/>no asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOAM"> <label id="P6A11_NOAM_TEXT">% Población masculina de 6 a 11 años que <br/>no asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOAF"> <label>% Población femenina de 6 a 11 años que <br/>no asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P6A11_NOAF"> <label id="P6A11_NOAF_TEXT">% Población femenina de 6 a 11 años que <br/>no asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOA"> <label>% Población de 12 a 14 años que no asiste <br/>a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOA"> <label id="P12A14NOA_TEXT">% Población de 12 a 14 años que no asiste <br/>a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOAM"> <label>% Población masculina de 12 a 14 años que <br/>no asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOAM"> <label id="P12A14NOAM_TEXT">% Población masculina de 12 a 14 años que <br/>no asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOAF"> <label>% Población femenina de 12 a 14 años que <br/>no asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12A14NOAF"> <label id="P12A14NOAF_TEXT">% Población femenina de 12 a 14 años que <br/>no asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A"> <label>% Población de 15 a 17 años que asiste a <br/>la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A"> <label id="P15A17A_TEXT">% Población de 15 a 17 años que asiste a <br/>la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A_M"> <label>% Población masculina de 15 a 17 años <br/>que asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A_M"> <label id="P15A17A_M_TEXT">% Población masculina de 15 a 17 años <br/>que asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A_F"> <label>% Población femenina de 15 a 17 años <br/>que asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15A17A_F"> <label id="P15A17A_F_TEXT">% Población femenina de 15 a 17 años <br/>que asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A"> <label>% Población de 18 a 24 años que asiste <br/>a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A"> <label id="P18A24A_TEXT">% Población de 18 a 24 años que asiste <br/>a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A_M"> <label>% Población masculina de 18 a 24 años<br/>que asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A_M"> <label id="P18A24A_M_TEXT">% Población masculina de 18 a 24 años<br/>que asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A_F"> <label>% Población femenina de 18 a 24 años<br/> que asiste a la escuela</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18A24A_F"> <label id="P18A24A_F_TEXT">% Población femenina de 18 a 24 años<br/> que asiste a la escuela</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN"> <label id="P8A14AN_TEXT">% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
 										</li> 
 								</ol>
 							 </div>
       						<div class="block">
 							 	<ol>
 		       					<li>	
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN_M"> <label id="P8A14AN_M_TEXT">% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
 								    </li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN_F"> <label>% Población femenina  de 8 a 14 años que no<br/> saben leer yescribir</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN_F"> <label id="P8A14AN_F_TEXT">% Población femenina  de 8 a 14 años que no<br/> saben leer yescribir</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN"> <label>% Población de 15 años y más analfabeta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN"> <label id="P15YM_AN_TEXT">% Población de 15 años y más analfabeta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN_M"> <label>% Población masculina de 15 años y más<br/> analfabeta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN_M"> <label id="P15YM_AN_M_TEXT">% Población masculina de 15 años y más<br/> analfabeta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN_F"> <label>% Población femenina de 15 años y más<br/> analfabeta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_AN_F"> <label id="P15YM_AN_F_TEXT">% Población femenina de 15 años y más<br/> analfabeta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE"> <label>% Población de 15 años y más sin <br/>escolaridad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE"> <label id="P15YM_SE_TEXT">% Población de 15 años y más sin <br/>escolaridad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE_M"> <label>% Población masculina de 15 años y<br/> más sin escolaridad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE_M"> <label id="P15YM_SE_M_TEXT">% Población masculina de 15 años y<br/> más sin escolaridad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE_F"> <label>% Población femenina de 15 años y más<br/> sin escolaridad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15YM_SE_F"> <label id="P15YM_SE_F_TEXT">% Población femenina de 15 años y más<br/> sin escolaridad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_IN"> <label>% Población de 15 años y más con primaria <br/>incompleta</label>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_IN"> <label id="P15PRI_IN_TEXT">% Población de 15 años y más con primaria <br/>incompleta</label>	
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_INM"> <label>% Población masculina de 15 años y más<br/> con primaria incompleta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_INM"> <label id="P15PRI_INM_TEXT">% Población masculina de 15 años y más<br/> con primaria incompleta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_INF"> <label>% Población femenina de 15 años y más<br/> con primaria incompleta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_INF"> <label id="P15PRI_INF_TEXT">% Población femenina de 15 años y más<br/> con primaria incompleta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_CO"> <label>% Población de 15 años y más conprimaria<br/> completa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_CO"> <label id="P15PRI_CO_TEXT">% Población de 15 años y más conprimaria<br/> completa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_COM"> <label>% Población masculina de 15 años y más<br/> con primaria completa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_COM"> <label id="P15PRI_COM_TEXT">% Población masculina de 15 años y más<br/> con primaria completa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_COF"> <label>% Población femenina de 15 añosy más con<br/> primaria completa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15PRI_COF"> <label id="P15PRI_COF_TEXT">% Población femenina de 15 añosy más con<br/> primaria completa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_IN"> <label>% Población de 15 años y más consecundaria<br/> incompleta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_IN"> <label id="P15SEC_IN_TEXT">% Población de 15 años y más consecundaria<br/> incompleta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_INM"> <label>% Población masculina de 15 años y más con<br/> secundariaincompleta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_INM"> <label id="P15SEC_INM_TEXT">% Población masculina de 15 años y más con<br/> secundariaincompleta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_INF"> <label>% Población femenina de 15 años y más con<br/> secundariaincompleta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_INF"> <label id="P15SEC_INF_TEXT">% Población femenina de 15 años y más con<br/> secundariaincompleta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_CO"> <label id="P15SEC_CO_TEXT">% Población de 15 años y más con secundaria<br/> completa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_COM"> <label id="P15SEC_COM_TEXT">% Población masculina de 15 años y más con<br/> secundaria completa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_COF"> <label>% Población femenina de 15 años y más con<br/> secundaria completa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_COF"> <label id="P15SEC_COF_TEXT">% Población femenina de 15 años y más con<br/> secundaria completa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB"> <label>% Población de 18 años y más con educación<br/> pos-básica</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB"> <label id="P18YM_PB_TEXT">% Población de 18 años y más con educación<br/> pos-básica</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB_M"> <label>% Población masculina de 18 años y más con<br/> educación pos-básica</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB_M"> <label id="P18YM_PB_M_TEXT">% Población masculina de 18 años y más con<br/> educación pos-básica</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB_F"> <label>% Población femenina de 18 años y más con<br/> educación pos-básica</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P18YM_PB_F"> <label id="P18YM_PB_F_TEXT">% Población femenina de 18 años y más con<br/> educación pos-básica</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES"> <label>% Grado promedio de escolaridad</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES"> <label id="GRAPROES_TEXT">% Grado promedio de escolaridad</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES_M"> <label>% Grado promedio de escolaridad de la <br/>población masculina</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES_M"> <label id="GRAPROES_M_TEXT">% Grado promedio de escolaridad de la <br/>población masculina</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES_F"> <label>% Grado promedio de escolaridadde la <br/>población femenina</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="GRAPROES_F"> <label id="GRAPROES_F_TEXT">% Grado promedio de escolaridadde la <br/>población femenina</label>
 									</li> 
 									Características económicas
 									<hr />
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA"> <label>% Población económicamente activa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA"> <label id="PEA_TEXT">% Población económicamente activa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA_M"> <label>% Población masculina económicamente activa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA_M"> <label id="PEA_M_TEXT">% Población masculina económicamente activa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA_F"> <label>% Población femenina económicamente activa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PEA_F"> <label id="PEA_F_TEXT">% Población femenina económicamente activa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC"> <label>% Población no económicamenteactiva</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC"> <label id="PE_INAC_TEXT">% Población no económicamenteactiva</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC_M"> <label>% Población masculina no económicamente activa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC_M"> <label id="PE_INAC_M_TEXT">% Población masculina no económicamente activa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC_F"> <label>% Población femenina no económicamente activa</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PE_INAC_F"> <label id="PE_INAC_F_TEXT">% Población femenina no económicamente activa</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA"> <label>% Población ocupada</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA"> <label id="POCUPADA_TEXT">% Población ocupada</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA_M"> <label>% Población masculina ocupada</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA_M"> <label id="POCUPADA_M_TEXT">% Población masculina ocupada</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA_F"> <label>% Población femenina ocupada</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POCUPADA_F"> <label id="POCUPADA_F_TEXT">% Población femenina ocupada</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP"> <label>% Población desocupada</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP"> <label id="PDESOCUP_TEXT">% Población desocupada</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP_M"> <label>% Población masculinadesocupada</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP_M"> <label id="PDESOCUP_M_TEXT">% Población masculinadesocupada</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP_F"> <label>% Población femenina desocupada</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDESOCUP_F"> <label id="PDESOCUP_F_TEXT">% Población femenina desocupada</label>
 									</li>
 									Servicios de salud
 									<hr /> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSINDER"> <label>% Población sin derechohabiencia a servicios <br/>de salud</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSINDER"> <label id="PSINDER_TEXT">% Población sin derechohabiencia a servicios <br/>de salud</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_SS"> <label>% Población derechohabiente a servicios <br/>de salud</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_SS"> <label id="PDER_SS_TEXT">% Población derechohabiente a servicios <br/>de salud</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_IMSS"> <label>% Población derechohabiente del IMSS</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_IMSS"> <label id="PDER_IMSS_TEXT">% Población derechohabiente del IMSS</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_ISTE"> <label>% Población derechohabiente del ISSSTE</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_ISTE"> <label id="PDER_ISTE_TEXT">% Población derechohabiente del ISSSTE</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_ISTEE"> <label>% Población derechohabiente del ISSSTE estatal</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_ISTEE"> <label id="PDER_ISTEE_TEXT">% Población derechohabiente del ISSSTE estatal</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_SEGP"> <label>% Población derechohabiente delseguro popular <br/> o Seguro Médicopara una Nueva Generación</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PDER_SEGP"> <label id="PDER_SEGP_TEXT">% Población derechohabiente delseguro popular <br/> o Seguro Médicopara una Nueva Generación</label>
 									</li>
 									Situación conyugal
 									<hr /> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_SOLT"> <label>% Población soltera o nunca unidade 12 años <br/>y más</label>	
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_SOLT"> <label id="P12YM_SOLT_TEXT">% Población soltera o nunca unidade 12 años <br/>y más</label>	
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_CASA"> <label>% Población casada o unida de 12 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_CASA"> <label id="P12YM_CASA_TEXT">% Población casada o unida de 12 años y más</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_SEPA"> <label>% Población que estuvo casada o unida <br/>de 12 años y más</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P12YM_SEPA"> <label id="P12YM_SEPA_TEXT">% Población que estuvo casada o unida <br/>de 12 años y más</label>
 									</li>
 									Religión
 									<hr/> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCATOLICA"> <label>% Población con religión católica</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PCATOLICA"> <label id="PCATOLICA_TEXT">% Población con religión católica</label>
 								</li> 
 								</ol>
 							</div>
       						<div class="block">
       							<ol>
 		       						<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNCATOLICA"> <label>% Protestantes, Evangélicas y Bíblicas<br/> diferentes deevangélicas</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNCATOLICA"> <label id="PNCATOLICA_TEXT">% Protestantes, Evangélicas y Bíblicas<br/> diferentes deevangélicas</label>
   							    	</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POTRAS_REL"> <label>% Población con otras religiones <br/>diferentes a las anteriores</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POTRAS_REL"> <label id="POTRAS_REL_TEXT">% Población con otras religiones <br/>diferentes a las anteriores</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSIN_RELIG"> <label>% Población sin religión</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PSIN_RELIG"> <label id="PSIN_RELIG_TEXT">% Población sin religión</label>
 									</li>
 									Hogares censales
 									<hr /> 
@@ -2027,19 +2048,19 @@
 									</li> 
 									-->
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="HOGJEF_M"> <label>% Hogares censales con jefatura masculina</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="HOGJEF_M"> <label id="HOGJEF_M_TEXT">% Hogares censales con jefatura masculina</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="HOGJEF_F"> <label>% Hogares censales con jefatura femenina</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="HOGJEF_F"> <label id="HOGJEF_F_TEXT">% Hogares censales con jefatura femenina</label>
 									</li> 
 		        					<!--<li>
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="POBHOG"> <label>% Población en hogares censales</label>
 									</li>--> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOGJEF_M"> <label>% Población en hogares censales con jefatura masculina</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOGJEF_M"> <label id="PHOGJEF_M_TEXT">% Población en hogares censales con jefatura masculina</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOGJEF_F"> <label>% Población en hogares censalescon jefatura femenina</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PHOGJEF_F"> <label id="PHOGJEF_F_TEXT">% Población en hogares censalescon jefatura femenina</label>
 									</li>
 									Viviendas
 									<hr /> 
@@ -2078,48 +2099,48 @@
 									</li> 
 									-->
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pisodt"> <label id="p_pisodt_TEXT">% Viviendas particulares habitadas con <br/>piso de tierra</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_c_elec"> <label id="p_c_elec_TEXT">% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_aguadv"> <label id="p_aguadv_TEXT">% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_excsa"> <label id="p_excsa_TEXT">% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
-									</li> 
-		        					
-		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
-									</li> 
-		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
-									</li> 
-		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_drenaj"> <label id="p_drenaj_TEXT">% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_radio"> <label id="p_radio_TEXT">% Viviendas particulares habitadas que<br/> disponen de radio</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_tv"> <label id="p_tv_TEXT">% Viviendas particulares habitadas que<br/> disponen de televisor</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_telef"> <label>% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_refri"> <label id="p_refri_TEXT">% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_autom"> <label id="p_autom_TEXT">% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_cel"> <label>% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pc"> <label id="p_pc_TEXT">% Viviendas particulares habitadasque disponen de computadora</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_inter"> <label>% Viviendas particulares habitadasque disponen<br/> de internet</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_telef"> <label id="p_telef_TEXT">% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_cel"> <label id="p_cel_TEXT">% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_inter"> <label id="p_inter_TEXT">% Viviendas particulares habitadasque disponen<br/> de internet</label>
 									</li>  	
 								</ol>
 							</div>
