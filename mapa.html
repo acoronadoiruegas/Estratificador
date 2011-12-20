@@ -195,6 +195,38 @@
              vector_layer_estados.addFeatures(geojson_format.read(estadosfeaturecollection));
              vector_layer_municipios.addFeatures(geojson_format.read(municipiosfeaturecollection));
 			 var point = new OpenLayers.LonLat(-102.559, 23.6255); 			 
+			 
+			 ////PRUEBA PARA EL MOUSE OVER
+             //AYUDA PAL TOOLTIP http://www.osgeo.org/pipermail/openlayers-users/2011-August/021814.html
+             //http://blog.allanglen.com/2010/10/control-openlayers-framedcloud-popup-position
+             var report = function(e) {
+                //alert(e.feature.id);
+                //var cosa = e;
+                //alert(e);
+                map.addPopup(new OpenLayers.Popup.FramedCloud(
+                        "Mensaje", 
+                        //e.feature.geometry.getBounds().getCenterLonLat(),
+                        e.geometry.getBounds().getCenterLonLat(),
+                        null,
+                        e.data["NOM_MUN"],
+                        null,
+                        true
+                    ));
+             };
+            
+             var highlightCtrl = new OpenLayers.Control.SelectFeature(vector_layer_municipios, {
+             	onSelect:report
+                 //hover: true,
+                 //highlightOnly: true,
+                 //renderIntent: "temporary",
+                 //eventListeners: {
+                 //    featurehighlighted: report
+                 //}
+             });
+             map.addControl(highlightCtrl);
+             highlightCtrl.activate();
+             ////FIN PRUEBA MOUSE OVER
+             
 			 map.setCenter(point, 5); 
 			 
 			 //var control = new OpenLayers.Control.SelectFeature(vector_layer_municipios);
@@ -535,7 +567,7 @@
         
 			if(dimension=="X")
 			{
-				$("#etiquetaEjeX").text("Eje X: "+$("#"+varx+"_TEXT").text());
+				$("#etiquetaEjeX").text(" : "+$("#"+varx+"_TEXT").text());
 				if(typeof(varx) != "undefined")
 				{       varx = varx.toLowerCase();
 						var dato;
@@ -561,7 +593,7 @@
 			};
 			if(dimension=="Y")
 			{
-				$("#etiquetaEjeY").text("Eje Y: "+$("#"+vary+"_TEXT").text());
+				$("#etiquetaEjeY").text(" : "+$("#"+vary+"_TEXT").text());
 				if(typeof(vary) != "undefined")
 				{
 						vary = vary.toLowerCase();
@@ -589,7 +621,7 @@
 			};
 			if(dimension=="Z")
 			{
-				$("#etiquetaEjeZ").text("Tamaño : "+$("#"+varz+"_TEXT").text());
+				$("#etiquetaEjeZ").text(" : "+$("#"+varz+"_TEXT").text());
 				if(typeof(varz) != "undefined")
 				{
 						varz = varz.toLowerCase();
@@ -794,37 +826,39 @@
 					                </center>    
 									</div>
 									<div id="tabs-2">
-									<center>	
+									<div style="text-align:left">	
 										<table border="0">
 										<tr>
+										
 										<td></td>
-										<td></td>
-										<td align="center"><label id="etiquetaEjeZ" name="etiquetaEjeZ" style="font-size: 10pt;">Tamaño:</label></td>
+										<td align="center">
+											<button onClick="openDialogDimension('Z');">Tamaño</button><label id="etiquetaEjeZ" name="etiquetaEjeZ" style="font-size: 10pt;">:</label>
+										</td>
 										</tr>
 										<tr>
-										<td align="center">
-											<button onClick="openDialogDimension('Z');">Tamaño</button><br />
-											<button onClick="openDialogDimension('X');">Eje X</button><br />
-											<button onClick="openDialogDimension('Y');">Eje Y</button> 
-										</td>
+										
 										<td align="left" width="100px">
 											<div  id="etiquetaEjeY" name="etiquetaEjeY" class="vertical" style="overflow: inherit; width: 200px;padding-top: 100px;">
-												Eje Y:
+												:
 											</div>
+											<div  id="botonEjeY" name="botonEjeY" class="vertical" style="overflow: inherit; width: 200px;padding-top: 100px;">
+												<button onClick="openDialogDimension('Y');">Eje Y</button>
+											</div>
+
 										</td>
 										<td align="center">
 											<div id="chart"></div>
 										</td>
 										</tr>
 										<tr>
-										<td></td>
+										
 										<td></td>
 										<td align="center">
-											<label id="etiquetaEjeX" name="etiquetaEjeX" style="font-size: 10pt">Eje X:</label>
+											<button onClick="openDialogDimension('X');">Eje X</button><label id="etiquetaEjeX" name="etiquetaEjeX" style="font-size: 10pt">:</label>
 										</td>
 										</tr>
 										</table>
-									 </center>										
+									 </div>										
 									</div>	
 					                <div id="tabs-3" >
 									<center>  	
