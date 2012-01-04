@@ -19,7 +19,7 @@
 	<script src="js/itemListStratification.js" type="text/javascript" charset="utf-8"></script> <!-- " MANEJO DE LA ESTRATIFICACION" -->
 	
 	<STYLE type="text/css">
-   		label { white-space:nowrap; font-family: "Arial Narrow";font-size: 8px; width: 100px}
+   		label { white-space:nowrap; font-family: "Arial Narrow";font-size: 12px; width: 100px}
    		.vertical {
 		  -webkit-transform: rotate(-90deg);
 		  -moz-transform: rotate(-90deg);
@@ -33,7 +33,7 @@
 		  padding-bottom: -50px;
 		}
 		.block {
-		  width: 200px;
+		  width: 280px;
 		  float: left;
 		  margin: 0 0 10px 0;
 		  vertical-align: middle;
@@ -173,7 +173,7 @@
              map = new OpenLayers.Map('map_element');
              layer = new OpenLayers.Layer.WMS( "INEGI WMS", 
                     "http://gaia.inegi.org.mx/NLB/mdm5.wms",
-                    {layers: 'c104,c00'} );  
+                    {layers: 'c104'} );  
              map.addLayer(layer);
              map.setCenter(new OpenLayers.LonLat(lon, lat), zoom);      
              var geojson_format = new OpenLayers.Format.GeoJSON();
@@ -384,7 +384,7 @@
 		                    var estado = parseInt(cve_edo);
 		                    //alert(feature.attributes["CVE_ENT"]+" -> "+estado.toString()+" -> estrato: " + estratos[estado] );
 		                    var idColor = estratos[estado-1];
-		                    return colorEstratos[idColor-1];
+		                    return colorEstratos[idColor-1]; 
                     }else
                     {
                     	return "#FFFFFF"
@@ -733,7 +733,7 @@
 						 if (estratos.length==32)
 						 {
 							 while(arr_colores.length < datox.length){							   
-							   arr_colores[arr_colores.length]=colorEstratos[estratos[arr_colores.length]];
+							   arr_colores[arr_colores.length]=colorEstratos[estratos[arr_colores.length]-1];
 							 }
 						 }else
 						 {
@@ -748,7 +748,7 @@
 						 if (estratos.length>=2400)
 						 {
 							 while(arr_colores.length < datox.length){							   
-							   arr_colores[arr_colores.length]=colorEstratos[estratos[arr_colores.length]];
+							   arr_colores[arr_colores.length]=colorEstratos[estratos[arr_colores.length]-1];
 							 }
 						 }else
 						 {
@@ -1121,10 +1121,7 @@
 	        						<li>	
 										<input  id="variables" name="variables" type="checkbox" value="PNACENT_M"/><label>% Población masculina nacida en la entidad</label>
 									</li> 
-								</ol> 
-							 	</div>
-      						<div class="block">	
-      						 	<ol>
+								
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
 									</li> 
@@ -1165,13 +1162,14 @@
 									</li> 
 		        					<li>
 									 	<input  id="variables" name="variables" type="checkbox" value="P3YM_HLI_F"/><label>% Población femenina de 3 años y más que habla <br/>alguna lengua indígena</label>
-									</li> 
+									</li>
+									 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P3HLINHE"/><label>% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
 									</li> 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
-									</li> 
+									</li>
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
 									</li> 
@@ -1183,7 +1181,12 @@
 									</li> 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
-									</li> 
+									</li>
+							</ol> 
+							</div>
+      						<div class="block">	
+      						<ol> 
+									 
 		        					<li>
 									 	<input  id="variables" name="variables" type="checkbox" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
 									</li> 
@@ -1195,7 +1198,8 @@
 									</li> 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="PHOG_IND"><label>% Población en hogares censales indígenas</label>
-									</li> 
+									</li>
+									 
 									Discapacidad
 									<hr />
 		        					<li>
@@ -1225,6 +1229,7 @@
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="PSIN_LIM"> <label>% Población sin limitación en la <br/>actividad</label>
 									</li> 
+									
 									Características educativas
 									<hr />
 		        					<li>
@@ -1275,10 +1280,7 @@
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
 										</li> 
-								</ol>
-							 </div>
-      						<div class="block">
-							 	<ol>
+
 		       					<li>	
 										<input  id="variables" name="variables" type="checkbox" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
 								    </li> 
@@ -1308,7 +1310,7 @@
 									</li> 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P15PRI_INM"> <label>% Población masculina de 15 años y más<br/> con primaria incompleta</label>
-									</li> 
+									</li>
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P15PRI_INF"> <label>% Población femenina de 15 años y más<br/> con primaria incompleta</label>
 									</li> 
@@ -1332,7 +1334,12 @@
 									</li> 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
-									</li> 
+									</li>
+							</ol>
+							</div>
+      						<div class="block">
+							<ol> 
+									 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
 									</li> 
@@ -1356,7 +1363,8 @@
 									</li> 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="GRAPROES_F"> <label>% Grado promedio de escolaridadde la <br/>población femenina</label>
-									</li> 
+									</li>
+							 
 									Características económicas
 									<hr />
 		        					<li>
@@ -1752,10 +1760,7 @@
 	        						<li>	
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_M"/><label id="PNACENT_M_TEXT">% Población masculina nacida enla entidad</label>
 									</li> 
-								</ol> 
-							 	</div>
-      						<div class="block">	
-      						 	<ol>
+							
 		        					<li>
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="PNACENT_F"/> <label id="PNACENT_F_TEXT">% Población femenina nacida en la entidad</label>
 									</li> 
@@ -1815,6 +1820,10 @@
 		        					<li>
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P3HLI_HE_F"><label id="P3HLI_HE_F_TEXT">% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
 									</li> 
+ 							</ol> 
+							</div>
+      						<div class="block">	
+      						<ol>									
 		        					<li>
 									 	<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P5_HLI"><label id="P5_HLI_TEXT">% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
 									</li> 
@@ -1906,10 +1915,7 @@
 		        					<li>
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN"> <label id="P8A14AN_TEXT">% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
 										</li> 
-								</ol>
-							 </div>
-      						<div class="block">
-							 	<ol>
+
 		       					<li>	
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P8A14AN_M"> <label id="P8A14AN_M_TEXT">% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
 								    </li> 
@@ -1964,6 +1970,10 @@
 		        					<li>
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_CO"> <label id="P15SEC_CO_TEXT">% Población de 15 años y más con secundaria<br/> completa</label>
 									</li> 
+							</ol>
+							</div>
+      						<div class="block">
+							<ol>									
 		        					<li>
 										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="P15SEC_COM"> <label id="P15SEC_COM_TEXT">% Población masculina de 15 años y más con<br/> secundaria completa</label>
 									</li> 
@@ -2343,10 +2353,7 @@
 	        						<li>	
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACENT_M"/><label>% Población masculina nacida enla entidad</label>
 									</li> 
-								</ol> 
-							 	</div>
-      						<div class="block">	
-      						 	<ol>
+							
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
 									</li> 
@@ -2405,7 +2412,12 @@
 									</li> 
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
-									</li> 
+									</li>
+							</ol> 
+							</div>
+      						<div class="block">	
+      						<ol>
+									 
 		        					<li>
 									 	<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
 									</li> 
@@ -2497,10 +2509,7 @@
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
 										</li> 
-								</ol>
-							 </div>
-      						<div class="block">
-							 	<ol>
+							
 		       					<li>	
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
 								    </li> 
@@ -2555,6 +2564,10 @@
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
 									</li> 
+							</ol>
+							</div>
+      						<div class="block">
+							<ol>									
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
 									</li> 
@@ -2935,10 +2948,7 @@
 	        						<li>	
 										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACENT_M"/><label>% Población masculina nacida enla entidad</label>
 									</li> 
-								</ol> 
-							 	</div>
-      						<div class="block">	
-      						 	<ol>
+							
 		        					<li>
 										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="PNACENT_F"/> <label>% Población femenina nacida en la entidad</label>
 									</li> 
@@ -2998,6 +3008,10 @@
 		        					<li>
 										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P3HLI_HE_F"><label>% Población femenina de 3 años y más que <br/>habla alguna lenguaindígena y habla español</label>
 									</li> 
+							</ol> 
+							</div>
+      						<div class="block">	
+      						<ol>
 		        					<li>
 									 	<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P5_HLI"><label>% Población de 5 años y más que habla <br/>alguna lengua indígena</label>
 									</li> 
@@ -3089,10 +3103,7 @@
 		        					<li>
 										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P8A14AN"> <label>% Población de 8 a 14 años que no <br/>saben leer y escribir</label>
 										</li> 
-								</ol>
-							 </div>
-      						<div class="block">
-							 	<ol>
+							
 		       					<li>	
 										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P8A14AN_M"> <label>% Población masculina de 8 a 14 años que no<br/> saben leer yescribir</label>
 								    </li> 
@@ -3147,6 +3158,10 @@
 		        					<li>
 										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_CO"> <label>% Población de 15 años y más con secundaria<br/> completa</label>
 									</li> 
+							</ol>
+							</div>
+      						<div class="block">
+							<ol>
 		        					<li>
 										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="P15SEC_COM"> <label>% Población masculina de 15 años y más con<br/> secundaria completa</label>
 									</li> 
