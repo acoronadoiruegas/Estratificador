@@ -20,6 +20,7 @@
 					entrada.numEstratos = Math.max.apply( null, estratos);
                                         entrada.urlLineChart = settings.urlLineChart;
                                         entrada.urlComponentChart = settings.urlComponentChart;
+                                        entrada.filtroEstados = settings.filtroEstados;
                                         historial.push(entrada);
 					return this
 				},
@@ -36,6 +37,7 @@
                                             var elemento = document.getElementById("'+"Estratificacion_"+entrada.identificador+'");\
                                             elemento.style.cursor = "pointer";\
                                             elemento.onclick = function(){\
+                                            filtroEstados = ['+entrada.filtroEstados.join(",")+'];\
                                             estratos = ['+entrada.estratos.join(",")+'];\
                                             animaScatterPlot();\
                                             generaMapa();\

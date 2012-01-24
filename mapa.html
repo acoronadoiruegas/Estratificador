@@ -1,24 +1,47 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-GB">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>ESTRATIFICADOR</title>
 	<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
 	<link rel="stylesheet" type="text/css" href="screen.css" media="screen" /> <!-- " LAYOUT 2 COLUMNS" -->
 	<link rel="stylesheet" type="text/css" href="jquery-ui/css/south-street/jquery-ui-1.8.16.custom.css"/>  <!-- " JQUERY STYLE" -->
 	<link rel="stylesheet" type="text/css" href="css/demo.css"/>  <!-- " HISTORIAL STYLE" -->
+	
+	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>  <!-- " VISUALIZE STYLE" -->
+	<link rel="stylesheet" type="text/css" href="css/visualize-light.css"/>  <!-- " VISUALIZE STYLE" -->
+	<link href="css/showLoading.css" rel="stylesheet" media="screen" />  <!-- " LADING STYLE" --> 
 	<script src="jquery-ui/js/jquery-1.6.4.min.js" type="text/javascript" charset="utf-8"></script> <!-- " JQUERY" -->
 	<script src="jquery-ui/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript" charset="utf-8"></script>  <!-- " JQUERY UI" -->	
 	<script type='text/javascript' src="OpenLayers.js"></script> <!-- " CONTROL DE MAPAS" -->
-	<script type='text/javascript' src="http://78.46.83.66/maps/estados.min.geojson.js"></script>  <!-- " GEOJSON ESTADOS" -->
+	<script type='text/javascript' src="maps/estados.min.geojson.js"></script>  <!-- " GEOJSON ESTADOS" -->
 	<!-- <script type='text/javascript' src="http://78.46.83.66/maps/municipio01.min.geojson.js"></script>  " GEOJSON MUNICIPIOS" -->
-	<script type='text/javascript' src="http://78.46.83.66/maps/municipios_09.min.geojson.js"></script>  <!-- " GEOJSON MUNICIPIOS" -->
+	<script type='text/javascript' src="maps/municipios_09.min.geojson.js"></script>  <!-- " GEOJSON MUNICIPIOS" -->
 	<script type="text/javascript" src="js/scatterplot.js" charset="utf-8"></script>	 <!-- " PLUGIN JQUERY SCATTERPLOT" -->
 	<script type="text/javascript" src="js/raphael-min.js"></script>	 <!-- "PLUGIN RAPHAEL" -->
 	<script type="text/javascript" src="js/etiquetasmunicipios.min.js"></script>	 <!-- " ETIQUETAS DE MUNICIPIOS" -->
 	<script src="js/scriptHistorial.js" type="text/javascript" charset="utf-8"></script><!-- " MANEJO DEL HISTORIAL" -->
 	<script src="js/itemListStratification.js" type="text/javascript" charset="utf-8"></script> <!-- " MANEJO DE LA ESTRATIFICACION" -->
+	<script src="js/ixMunicipio.js" type="text/javascript" charset="utf-8"></script> <!-- " INDICES GEOGRAFICOS MUNICIPALES" -->
+	<script src="js/jquery.showLoading.js" type="text/javascript" charset="utf-8"></script> <!-- " PLUGIN LOADING" -->
+	<script src="js/excanvas.js" type="text/javascript" charset="utf-8"></script> <!-- " PLUGIN EXCANVAS" -->
+	<script src="js/visualize.jQuery.js" type="text/javascript" charset="utf-8"></script> <!-- " PLUGIN VUSUALIZE" -->
+	
+	
 	
 	<STYLE type="text/css">
+		#legend{
+		    position:absolute; 
+		    left:20px; 
+		    bottom:10px; 
+		    z-index:3900; 
+		    width:350px; 
+		    height:315px; 
+		    
+		}
+		.scrollbox {
+		  height:150px;
+		  overflow-y:scroll;
+		}
    		label { white-space:nowrap; font-family: "Arial Narrow";font-size: 12px; width: 100px}
    		.vertical {
 		  -webkit-transform: rotate(-90deg);
@@ -75,7 +98,7 @@
 		}
 	</STYLE>  
 	<script type="text/javascript" charset="utf-8">		
-		$(function() {
+		$(function() {			
 			$( "#accordion" ).accordion({active: 0 });
 			$( "#tabs" ).tabs();
 			$( "#radio" ).buttonset();
@@ -142,17 +165,21 @@
 	</script>
 	
 	<script type='text/javascript'>
+		$("#legend").hide();
 		var datosMunicipales = {};
         var datosEstatales = {};
+        var tablaDatosMunicipales = new Array();
 		var map;
         var vector_layer_estados;
         var vector_layer_municipios;
         var lon = 19;
         var lat = 99;
         var zoom = 5;
+        var sizeCentros = [];
         //var ip = "http://localhost:7101";
         var ip = "http://cic.inegi.org.mx";
         //var ip = "http://10.1.8.76:7025";
+        
         var estratos=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
         var poligonos=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
         var colorEstratos =  ["#A50026","#006837","#F46D43","#66BD63","#FEE08B","#D9EF8B","#FDAE61","#A6D96A","#D73027",
@@ -163,8 +190,12 @@
 									"Colima","Chiapas","Chihuahua","Distrito Federal","Durango","Guanajuato","Guerrero","Hidalgo",
 									"Jalisco","México","Michoacán de Ocampo","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla",
 									"Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala",
-									"Veracruz de Ignacio de la Llave","Yucatán","Zacatecas"];                   
+									"Veracruz de Ignacio de la Llave","Yucatán","Zacatecas"];      
+		var municipiosInicial =  [0,11,16,21,32,70,80,198,265,281,320,366,447,531,656,781,894,927,947,998,1568,1785,1803,1812,1870,1888,1960,1977,2020,2080,2292,2398];
+		var municipiosFinal   = [10,15,20,31,69,79,197,264,280,319,365,446,530,655,780,893,926,946,997,1567,1784,1802,1811,1869,1887,1959,1976,2019,2079,2291,2397,2455];
+		//http://javascript.gakaa.com/array-slice-4-0-5-.aspx					             
 		var variables = [];
+		var filtroEstados = [];
 		var urlComponentChart;
 		var urlLineChart;
 		var numeroEjecuciones = 0;
@@ -244,6 +275,7 @@
 			 
              }
       function kmedias(){
+			 jQuery('#tabs').showLoading();
              estratos = null;
              var numeroEstratos = $('#numEstratos').val();
              variables = [];
@@ -251,10 +283,21 @@
 			 {
 			    variables.push($(this).val().toLowerCase());
 			 });
-			 
+			 filtroEstados=[];
+			 $("input:checkbox[name=filtroEstados]:checked").each(function()
+			 {
+			    filtroEstados.push(parseInt($(this).val()));
+			 });
              var nivelGeografico = $('#nivelGeografico').val();
-                       
-             var urlKmedias = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=kmedias&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=1&cen=1&sc=1&callback=procesaRespuestaKmedias";                 
+             var urlKmedias="";
+             if(filtroEstados.length>0&&filtroEstados.length<32)
+             {
+		 		urlKmedias = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=kmedias&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&fil=1&cod_ent="+filtroEstados.join(",")+",0&callback=procesaRespuestaKmedias";             	
+             }else
+             {
+				urlKmedias = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=kmedias&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&fil=0&cod_ent=0,0&callback=procesaRespuestaKmedias";             	
+             }          
+                              
              var script = document.createElement("script");
 		     script.setAttribute("src",urlKmedias);
 		     script.setAttribute("type","text/javascript");                
@@ -278,12 +321,14 @@
        			vector_layer_estados.redraw();
        			vector_layer_municipios.redraw();
    		}
+   		
    		metodo="KMEDIAS";
    		numeroEjecuciones++;
    		imagenLineasCentros(); //Incrusta la gráfica de centroides.
    		animaScatterPlot();
    		}
    		function mclust(){
+			 jQuery('#tabs').showLoading();			 
              estratos = null;
              var numeroEstratos = $('#numEstratos').val();
              variables = [];
@@ -291,9 +336,20 @@
 			 {
 			    variables.push($(this).val().toLowerCase());
 			 });
+			 filtroEstados=[];
+			 $("input:checkbox[name=filtroEstados]:checked").each(function()
+			 {
+			    filtroEstados.push(parseInt($(this).val()));
+			 });
 			 var modelo = $('#modelo').val();
              var nivelGeografico = $('#nivelGeografico').val();
-             var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mclust&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=1&cen=1&sc=1"+"&modelo="+modelo+"&callback=procesaRespuestaMclust";                 
+             if(filtroEstados.length>0&&filtroEstados.length<32)
+             {
+             	var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mclust&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&fil=1&cod_ent="+filtroEstados.join(",")+"&modelo="+modelo+"&callback=procesaRespuestaMclust";                 
+             }else
+             {
+             	var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mclust&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&fil=0&cod_ent=0,0"+"&modelo="+modelo+"&callback=procesaRespuestaMclust";
+             }
              var script = document.createElement("script");
 		     script.setAttribute("src",urlMclust);
 		     script.setAttribute("type","text/javascript");                
@@ -317,12 +373,14 @@
 					vector_layer_estados.redraw();
 					vector_layer_municipios.redraw();
 			}
+		   	
 		   metodo="MCLUST";
 		   numeroEjecuciones++;	
 		   imagenLineasCentros(); //Incrusta la gráfica de centroides.        
 		   animaScatterPlot();
       }	
       function mulvar(){
+      	     jQuery('#tabs').showLoading();
              estratos = null;
              var numeroEstratos = $('#numEstratos').val();
              variables = [];
@@ -330,9 +388,20 @@
 			 {
 			    variables.push($(this).val().toLowerCase());
 			 });
+			 filtroEstados=[];
+			 $("input:checkbox[name=filtroEstados]:checked").each(function()
+			 {
+			    filtroEstados.push(parseInt($(this).val()));
+			 });
              var nivelGeografico = $('#nivelGeografico').val();
-             var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mulvar&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&callback=procesaRespuestaMulvar";
-                            
+             if(filtroEstados.length>0&&filtroEstados.length<32)
+             {
+             	var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mulvarFiltrado&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&fil=1&cod_ent="+filtroEstados.join(",")+",0&callback=procesaRespuestaMulvar";
+             }
+             else
+             {
+             	var urlMclust = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=mulvarFiltrado&numero_grupos="+numeroEstratos+"&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&fil=0&cod_ent=0,0&callback=procesaRespuestaMulvar";
+             }               
              var script = document.createElement("script");
 		     script.setAttribute("src",urlMclust);
 		     script.setAttribute("type","text/javascript");                
@@ -356,6 +425,7 @@
        			vector_layer_estados.redraw();
        			vector_layer_municipios.redraw();
    		}
+   	   	
    	   metodo="MULVAR";
    	   numeroEjecuciones++;
    	   imagenLineasCentros();
@@ -363,6 +433,7 @@
       }
       function generaMapa()
       {
+      	$('#tabs').showLoading();      	
 		var nivelGeografico = $('#nivelGeografico').val();
   		if(nivelGeografico=="0"){
      			vector_layer_municipios.redraw();
@@ -370,7 +441,8 @@
    		}else{
        			vector_layer_estados.redraw();
        			vector_layer_municipios.redraw();
-   		} 
+   		}
+   		 
 	  }	
       var contextEstados = {
                 getColor: function(feature) {
@@ -410,8 +482,15 @@
 	                    }
 	                    var municipio = parseInt(cve_mun);
 	                    var pos = getPosicionEstrato(estado,municipio);
-	                    var idColor = estratos[pos];
-	                    return colorEstratos[idColor-1];
+	                    var p3 = pos;
+	                    if(pos==-1)
+	                    {
+	                    	return "#FFFFFF"
+	                    }else
+	                    {
+	                    	var idColor = estratos[pos];
+	                    	return colorEstratos[idColor-1];
+	                    }
 	                }else
 	                {
 	                	return "#FFFFFF"
@@ -420,13 +499,30 @@
             };
       function getPosicionEstrato(estado, municipio) {
        		var nivelGeografico = $('#nivelGeografico').val();
+       		
        		if(nivelGeografico=="0")
        		{
-       			for(var i=0; i<poligonos.length; i++) {
-		        	if (poligonos[i] == estado) return i+municipio-1;
-		    	}	
+       			if(filtroEstados.length>0)
+       			{
+	       			if($.inArray(estado,filtroEstados)>-1)
+	       			{   
+		       			var colorI = 0;
+		       			for(var i=0; i<2456; i++) {
+				        	if ((geoIxEstado[i] == estado)&&(geoIxMunicipio[i]==municipio)) return colorI;
+				        	if ($.inArray(geoIxEstado[i],filtroEstados)>-1)colorI++;
+				    	}
+			    	}else
+			    	{
+			    		return -1;
+			    	}
+			    }else
+			    {
+			    	for(var i=0; i<poligonos.length; i++) {
+				        	if ((geoIxEstado[i] == estado)&&(geoIxMunicipio[i]==municipio)) return i;				        
+				    	}	
+			    }		
        		}
-		    return 0;
+		    return -1;
 		}     
       var templateEstados = {              
                 fillColor: "${getColor}",
@@ -462,7 +558,15 @@
 			 {
 			    variables.push($(this).val().toLowerCase());
 			 });
-            var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficaCentrosCluster&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&callback=generaGraficaCentros";
+			 
+			if(filtroEstados.length>0&&filtroEstados.length<32)
+			{
+				var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficaCentrosCluster&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&fil=1&cod_ent="+filtroEstados.join(",")+"&callback=generaGraficaCentros";
+			} else
+			{
+				var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficaCentrosCluster&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&fil=0&cod_ent=0,0&callback=generaGraficaCentros";	
+			}
+            
                             
             var script = document.createElement("script");        
 		    script.setAttribute("src",urlStr);
@@ -495,11 +599,13 @@
 			   {
 					$('#divimagenLineas').hide();
 			   }
+			  
          }
          
          function estableceGraficaCentros(urlImagen){
 			 urlLineChart = urlImagen;
              $('#imagenLineas').attr('src',urlImagen);
+             
          }
          
          
@@ -507,7 +613,14 @@
          {
             var num_estratos = Math.max.apply(Math, estratos); 
             var nivelGeografico = $('#nivelGeografico').val();
-            var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficacomponentes&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&callback=generaGraficaComponentes";
+            if(filtroEstados.length>0&&filtroEstados.length<32)
+            {
+            	var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficacomponentes&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&fil=1&cod_ent="+filtroEstados.join(",")+"&callback=generaGraficaComponentes";	
+            }else
+            {
+            	var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficacomponentes&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&fil=0&cod_ent=0,0&callback=generaGraficaComponentes";
+            }			
+            
            
             var script = document.createElement("script");        
 		    script.setAttribute("src",urlStr);
@@ -525,6 +638,7 @@
                }
          	urlImagen = ip+"/MotorGeoEstadistico"+urlImagen;
             cambiaGraficaComponentes(urlImagen)
+            csvCentros();
          }
          function cambiaGraficaComponentes(urlImagen){
          	urlComponentChart=urlImagen;
@@ -534,17 +648,100 @@
 			 {
 			    variables.push($(this).val().toLowerCase());
 			 });
-         	AgregarEstrtificacion(numeroEjecuciones,estratos,urlSLD,variables,metodo,"Texto de los parametros",urlLineChart,urlComponentChart);
+         	AgregarEstrtificacion(numeroEjecuciones,estratos,urlSLD,variables,metodo,"Texto de los parametros",urlLineChart,urlComponentChart,filtroEstados);
          	$('#imagenComponentes').attr('src',urlImagen);
+         	jQuery('#tabs').hideLoading();
          }
          
          
          function estableceGraficaComponentes(urlImagen){         
          	$('#imagenComponentes').attr('src',urlImagen);	
+         	jQuery('#tabs').hideLoading();
          }
          
-         
-         
+         function csvCentros(){
+            var num_estratos = Math.max.apply(Math, estratos); 
+            var nivelGeografico = $('#nivelGeografico').val();
+            variables = [];
+             $("input:checkbox[name=variables]:checked").each(function()
+			 {
+			    variables.push($(this).val().toLowerCase());
+			 });
+			if(filtroEstados.length>0&&filtroEstados.length<32)
+			{
+				var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=centros&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&fil=1&cod_ent="+filtroEstados.join(",")+"&callback=generaCSVCentros";
+			} else
+			{
+				var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=centros&variables="+variables.join(",")+"&geo="+nivelGeografico+"&estratos="+estratos.join(",")+"&numero_grupos="+num_estratos+"&fil=0&cod_ent=0,0&callback=generaCSVCentros";	
+			}
+            var script = document.createElement("script");        
+		    script.setAttribute("src",urlStr);
+		    script.setAttribute("type","text/javascript");                
+		    document.body.appendChild(script);
+         }
+         function generaCSVCentros(data){
+			var urlCSV;
+			var datamatrix;
+               for (var obj in data) {  
+                  if(data[obj].name=="cent.csv")
+                    {
+                        urlCSV = data[obj].value
+                    }                  
+                  if(data[obj].name=="cen")
+                    {
+                        datamatrix = data[obj].value
+                    }
+                  if(data[obj].name=="siz")
+                    {
+                        sizeCentros = data[obj].value
+                    }    
+                  
+               }
+			   urlCSV = ip+"/MotorGeoEstadistico"+urlCSV;
+               cambiaCSVCentros(datamatrix);         	
+         }
+         function cambiaCSVCentros(datamatrix){
+         	$('#tiraMarginal').empty();
+         	var renglones = {};
+         	renglones[0]=$('<tr style="color: #000000">');
+         	renglones[0].append($('<td>'));
+         	$.each(datamatrix,function( intIndex, objValue ){
+         		renglones[0].append($('<th scope="col">').text(variables[intIndex]));
+         		});
+         	
+         	$.each(datamatrix[0],function( intIndex, objValue ){
+         			renglones[intIndex+1]=$('<tr scope="row" style="color:'+colorEstratos[intIndex]+'"">');
+         			renglones[intIndex+1].append($('<th>').text("Grupo"+(intIndex+1)+"-["+sizeCentros[intIndex]+" Mpios.]"));
+         		});
+         	
+         	$.each(datamatrix,function( intIndex, objValue ){
+         		$.each(objValue,function( intIx, objV ){
+         				var valRound = objV * 100;
+         				valRound = valRound.toFixed(2); 
+         				renglones[intIx+1].append($('<td>').text((valRound)));
+         			});
+         		});
+         	 var $tbl = $('<table style="float:right">').attr('id', 'centrosTable');
+         	 var $tbody = $('<tbody>');
+         	 
+         	 $.each(renglones,function( intIndex, objValue ){
+         	 		if(intIndex==0){
+         	 			var thead = $('<thead>');
+         	 			thead.append(objValue);
+         	 			$tbl.append(thead);
+         	 		}else
+         	 		{
+         	 			$tbody.append(objValue);
+         	 		}
+         	 		
+         		});
+         	$tbl.append($tbody);
+         	$tbl.hide();	
+         	$('#tiraMarginal').append($tbl);
+         	
+         	$('#centrosTable').visualize({type: 'line', width: '250px', height: '80px', colors:colorEstratos,title:'Grupos',lineWeight:'1'});
+         	
+         }
          function openDialogDimension(dimension)  {
 			 if(dimension=='X')
 			 {
@@ -562,7 +759,6 @@
 			var varx = $('input[name=variableX]:checked').val();			
 			var vary = $('input[name=variableY]:checked').val();
 			var varz = $('input[name=variableZ]:checked').val();
-			
             var nivelGeografico = $('#nivelGeografico').val();
         
 			if(dimension=="X")
@@ -576,7 +772,7 @@
 							dato = datosEstatales[varx];
 							if(typeof(dato) == "undefined")
 							{
-								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+varx+"&con=1&cen=1&sc=1&callback=procesaDimensionDatosEstatales";
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+varx+"&con=0&cen=0&sc=0&callback=procesaDimensionDatosEstatales";
 								getDataDimensions(url);
 							}
 						}
@@ -585,7 +781,7 @@
 							dato = datosMunicipales[varx];
 							if(typeof(dato) == "undefined")
 							{
-								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+varx+"&con=0&cen=1&sc=1&callback=procesaDimensionDatosMunicipales";
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+varx+"&con=0&cen=0&sc=0&fil=0&cod_ent=0,0&callback=procesaDimensionDatosMunicipales";
 								getDataDimensions(url);
 							}
 						}						
@@ -603,7 +799,7 @@
 							dato = datosEstatales[vary];
 							if(typeof(dato) == "undefined")
 							{
-								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+vary+"&con=1&cen=1&sc=1&callback=procesaDimensionDatosEstatales";
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+vary+"&con=0&cen=0&sc=0&callback=procesaDimensionDatosEstatales";
 								getDataDimensions(url);
 							}
 						}
@@ -612,7 +808,7 @@
 							dato = datosMunicipales[vary];
 							if(typeof(dato) == "undefined")
 							{
-								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+vary+"&con=0&cen=1&sc=1&callback=procesaDimensionDatosMunicipales";
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+vary+"&con=0&cen=1&sc=1&fil=0&cod_ent=0,0&callback=procesaDimensionDatosMunicipales";
 								getDataDimensions(url);
 							}
 						}						
@@ -631,7 +827,7 @@
 							dato = datosEstatales[varz];
 							if(typeof(dato) == "undefined")
 							{
-								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+varz+"&con=1&cen=1&sc=1&callback=procesaDimensionDatosEstatales";
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosEstatales&variable="+varz+"&con=0&cen=1&sc=1&callback=procesaDimensionDatosEstatales";
 								getDataDimensions(url);
 							}
 						}
@@ -640,7 +836,7 @@
 							dato = datosMunicipales[varz];
 							if(typeof(dato) == "undefined")
 							{
-								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+varz+"&con=0&cen=1&sc=1&callback=procesaDimensionDatosMunicipales";
+								var url = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=datosMunicipales&variable="+varz+"&con=0&cen=1&sc=1&fil=0&cod_ent=0,0&callback=procesaDimensionDatosMunicipales";
 								getDataDimensions(url);
 							}
 						}						
@@ -725,6 +921,34 @@
 						 datoy = datosMunicipales[vary];
 						 datoz = datosMunicipales[varz];
 						 etiquetas = etiquetasMunicipios;
+						 var dxtmp = [];
+						 var dytmp = [];
+						 var dztmp = [];
+						 var dttmp = []; 		
+			             $("input:checkbox[name=filtroEstados]").each(function(){
+			             	 if($.inArray($(this).val(),filtroEstados)>-1)
+			             	 {
+			             	 	$(this).attr('checked', true);
+			             	 }else
+			             	 {
+			             	 	$(this).attr('checked', false);
+			             	 }
+			             });
+			             $.each(filtroEstados,function(index, value)
+						 {
+						    var estadoIx = value-1;
+						    dxtmp = dxtmp.concat(datox.slice(municipiosInicial[estadoIx],municipiosFinal[estadoIx]));
+						    dytmp = dytmp.concat(datoy.slice(municipiosInicial[estadoIx],municipiosFinal[estadoIx]));
+						    dztmp = dztmp.concat(datoz.slice(municipiosInicial[estadoIx],municipiosFinal[estadoIx]));
+						    dttmp = dttmp.concat(etiquetas.slice(municipiosInicial[estadoIx],municipiosFinal[estadoIx]));						    
+						 });
+						 if(dttmp.length>0)
+						 {
+						 	datox = dxtmp;
+						 	datoy = dytmp;
+						 	datoz = dztmp;
+						 	etiquetas = dttmp;
+						 }
 					 }
 					 
 					 var arr_colores = []
@@ -745,7 +969,7 @@
 					 }
 					 if (nivelGeografico==0)
 					 {
-						 if (estratos.length>=2400)
+						 if ((estratos.length>=2400)||(dttmp.length>0))
 						 {
 							 while(arr_colores.length < datox.length){							   
 							   arr_colores[arr_colores.length]=colorEstratos[estratos[arr_colores.length]-1];
@@ -778,7 +1002,7 @@
 			});			 
             var nivelGeografico = $('#nivelGeografico').val(); 
                
-            var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficaMclust&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&callback=generaImagen";
+            var urlStr = ip+"/MotorGeoEstadistico/rest/restservice/ejecutar?algoritmo=graficaMclust&variables="+variables.join(",")+"&geo="+nivelGeografico+"&con=0&cen=0&sc=0&fil=0&cod_ent=0,0&callback=generaImagen";
             var script = document.createElement("script");        
 		    script.setAttribute("src",urlStr);
 		    script.setAttribute("type","text/javascript");                
@@ -800,9 +1024,6 @@
          }
          
          
-    
-	           
-	           
        </script>
        
 </head>
@@ -822,7 +1043,12 @@
 									</ul>
 					                <div id="tabs-1" style="vertical-align:middle ">
 					                <center> 
-											<div id='map_element' style='height: 540px;'> </div>
+											<div id='map_element' style='height: 540px;'> 
+												<div id="legend"> 
+													<div id="tiraMarginal">																												
+													</div>
+												</div>
+											</div>
 					                </center>    
 									</div>
 									<div id="tabs-2">
@@ -870,8 +1096,10 @@
 									</div>
 									<div id="tabs-4" >
 									<center> 
+										<div id="divimagenComponentes">
 										  <image id="imagenComponentes">              
 										  </image>  
+										</div>  
 									</center>        
 									</div>
 								</div>
@@ -894,11 +1122,48 @@
 					                            <option value="7">7</option> 
 					                            <option value="8">8</option> 
 											</select>
-											<label style="font-size: .9em">Nivel Geográfico</label> <select style="font-size : 8pt" name="nivelGeografico" id="nivelGeografico"  style="font-size : 10pt" > 
+											<label style="font-size: .9em">Nivel </label> <select style="font-size : 8pt" name="nivelGeografico" id="nivelGeografico"  style="font-size : 10pt" > 
 												<option value="1" selected="selected">Estatal</option> 
-												<option value="0">Municipal</option>  
+												<option value="0" >Municipal</option>  
 											</select>
+											
 											<br />
+											
+											<label style="font-size: .9em;">Filtro por estados:</label>
+											<div class="scrollbox">
+											<input id="filtroEstados" name="filtroEstados" type="checkbox" value="1"/> <label>Aguascalientes</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="2"/> <label>Baja California</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="3"/> <label>Baja California Sur</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="4"/> <label>Campeche</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="5"/> <label>Coahuila de Zaragoza</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="6"/> <label>Colima</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="7"/> <label>Chiapas</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="8"/> <label>Chihuahua</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="9"/> <label>Distrito Federal</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="10"/> <label>Durango</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="11"/> <label>Guanajuato</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="12"/> <label>Guerrero</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="13"/> <label>Hidalgo</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="14"/> <label>Jalisco</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="15"/> <label>México</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="16"/> <label>Michoacán de Ocampo</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="17"/> <label>Morelos</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="18"/> <label>Nayarit</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="19"/> <label>Nuevo León</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="20"/> <label>Oaxaca</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="21"/> <label>Puebla</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="22"/> <label>Querétaro</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="23"/> <label>Quintana Roo</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="24"/> <label>San Luis Potosí</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="25"/> <label>Sinaloa</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="26"/> <label>Sonora</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="27"/> <label>Tabasco</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="28"/> <label>Tamaulipas</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="29"/> <label>Tlaxcala</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="30"/> <label>Veracruz</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="31"/> <label>Yucatán</label>
+											<br/><input id="filtroEstados" name="filtroEstados" type="checkbox" value="32"/> <label>Zacatecas</label>
+											</div>
 											<hr />			
 											<center>														
 												<button onClick="openDialogVariables();">Variables</button>
@@ -958,6 +1223,9 @@
 						</div>
 					</div>
 					<div id="footer2">
+						<div style="width: 100%; text-align: right">
+						<a id="descargaLink" href='http://cic.inegi.org.mx/MotorGeoEstadistico/resources/files/cb60651c-85c6-4a4b-a493-091adcd97363_datS.csv' target="_blank">Descargar Datos</a>
+						</div>
 						<center><p style="color: black">INEGI 2012</p></center>
 					</div>
 					<div id="dialog" title="Caracterización de la Estratificación" style="width: 800px">
@@ -965,6 +1233,7 @@
 					              <image id="imagenMclust"/>  
 					    </center>
 					</div>
+					<!-- VARIABLES-->
 					<div id="dialogVariables" title="Seleccione las variables de Interes" style="width: 800px;height: 600px">
 						<div class="main_part_x">	
 							<div class="block">		
@@ -1511,7 +1780,7 @@
 										<input  id="variables" name="variables" type="checkbox" value="VPH_PISOTI"> <label>Viviendas particulares habitadas con <br/>piso de tierra</label>
 									</li> -->
 									<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_pisodt"> <label>% Pobladores en viviendas con <br/>piso de tierra</label>
 									</li> 
 		        					<!--<li>
 										<input  id="variables" name="variables" type="checkbox" value="VPH_1DOR"> <label>Viviendas particulares habitadas con un <br/>dormitorio</label>
@@ -1532,7 +1801,7 @@
 										<input  id="variables" name="variables" type="checkbox" value="VPH_C_ELEC"> <label>Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
 									</li> -->
 									<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_c_elec"> <label>% Pobladores en viviendas que <br/>disponen de luz eléctrica</label>
 									</li> 
 									<!--
 		        					<li>
@@ -1542,7 +1811,7 @@
 										<input  id="variables" name="variables" type="checkbox" value="VPH_AGUADV"> <label>Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>										
 									</li> -->
 									<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>										
+										<input  id="variables" name="variables" type="checkbox" value="p_aguadv"> <label>% Pobladores en viviendas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>										
 									</li> 
 									<!--
 		        					<li>
@@ -1552,11 +1821,11 @@
 										<input  id="variables" name="variables" type="checkbox" value="VPH_EXCSA"> <label>Viviendas particulares habitadas que <br/>disponen de excusado osanitario</label>
 									</li> -->
 									<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_excsa"> <label>% Pobladores en viviendas que <br/>disponen de excusado o sanitario</label>
 									</li>
 									
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_drenaj"> <label>% Pobladores en viviendas que <br/>disponen de drenaje</label>
 									</li> 
 		        					<!--<li>
 										<input  id="variables" name="variables" type="checkbox" value="VPH_NODREN"> <label>Viviendas particulares habitadas que <br/>no disponen de drenaje</label>								
@@ -1568,37 +1837,38 @@
 										<input  id="variables" name="variables" type="checkbox" value="VPH_SNBIEN"> <label>Viviendas particulares habitadas <br/>sin ningún bien</label> 
 									</li>--> 
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_radio"> <label>% Pobladores en viviendas que<br/> disponen de radio</label>
 									</li> 
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_tv"> <label>% Pobladores en viviendas que <br/> disponen de televisor</label>
 									</li> 
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_refri"> <label>% Pobladores en viviendas que <br/> disponen de refrigerador</label>
 									</li> 
 		        					<!--<li>
-										<input  id="variables" name="variables" type="checkbox" value="VPH_LAVAD"> <label>Viviendas particulares habitadas que<br/> disponen de lavadora</label>
+										<input  id="variables" name="variables" type="checkbox" value="VPH_LAVAD"> <label>Viviendas particulares habitadas que <br/> disponen de lavadora</label>
 									</li> -->
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_autom"> <label>% Pobladores en viviendas que <br/> disponen de automóvil o camioneta</label>
 									</li> 
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_pc"> <label>% Pobladores en viviendas que disponen de computadora</label>
 									</li> 
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_telef"> <label>% Viviendas particulares habitadas que disponen<br/> de línea telefónica fija</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_telef"> <label>% Pobladores en viviendas que disponen <br/> de línea telefónica fija</label>
 									</li> 
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_cel"> <label>% Viviendas particulares habitadas que disponen<br/> de teléfono celular </label>
+										<input  id="variables" name="variables" type="checkbox" value="p_cel"> <label>% Pobladores en viviendas que disponen<br/> de teléfono celular </label>
 									</li> 
 		        					<li>
-										<input  id="variables" name="variables" type="checkbox" value="p_inter"> <label>% Viviendas particulares habitadas que disponen<br/> de internet</label>
+										<input  id="variables" name="variables" type="checkbox" value="p_inter"> <label>% Pobladores en viviendas que disponen <br/> de internet</label>
 									</li>  	
 								</ol>
 							</div>
 						</div>
 					</div> 
-					
+					<!-- VARIABLES>
+					<!-- DIMENSION X -->
 					<!-- DIMENSION X -->
 					<div id="dialogoDimensionX" title="Seleccione la variable del Eje X" style="width: 800px;height: 600px">
 						<div class="main_part_x">	
@@ -2143,56 +2413,59 @@
 									</li> 
 									-->
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pisodt"> <label id="p_pisodt_TEXT">% Viviendas particulares habitadas con <br/>piso de tierra</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pisodt"> <label id="p_pisodt_TEXT">% Pobladores en viviendas con <br/>piso de tierra</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_c_elec"> <label id="p_c_elec_TEXT">% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_c_elec"> <label id="p_c_elec_TEXT">% Pobladores en viviendas que <br/>disponen de luz eléctrica</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_aguadv"> <label id="p_aguadv_TEXT">% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_aguadv"> <label id="p_aguadv_TEXT">% Pobladores en viviendas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_excsa"> <label id="p_excsa_TEXT">% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_excsa"> <label id="p_excsa_TEXT">% Pobladores en viviendas que <br/>disponen de excusado o sanitario</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_drenaj"> <label id="p_drenaj_TEXT">% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
-									</li> 
-		        					
-		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_radio"> <label id="p_radio_TEXT">% Viviendas particulares habitadas que<br/> disponen de radio</label>
-									</li> 
-		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_tv"> <label id="p_tv_TEXT">% Viviendas particulares habitadas que<br/> disponen de televisor</label>
-									</li> 
-		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_refri"> <label id="p_refri_TEXT">% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_drenaj"> <label id="p_drenaj_TEXT">% Pobladores en viviendas  que <br/>disponen de drenaje</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_autom"> <label id="p_autom_TEXT">% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_radio"> <label id="p_radio_TEXT">% Pobladores en viviendas que<br/> disponen de radio</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pc"> <label id="p_pc_TEXT">% Viviendas particulares habitadasque disponen de computadora</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_tv"> <label id="p_tv_TEXT">% Pobladores en viviendas que<br/> disponen de televisor</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_telef"> <label id="p_telef_TEXT">% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_refri"> <label id="p_refri_TEXT">% Pobladores en viviendas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_autom"> <label id="p_autom_TEXT">% Pobladores en viviendas que<br/> disponen de automóvil o camioneta</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_cel"> <label id="p_cel_TEXT">% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_pc"> <label id="p_pc_TEXT">% Pobladores en viviendas que disponen de computadora</label>
 									</li> 
 		        					<li>
-										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_inter"> <label id="p_inter_TEXT">% Viviendas particulares habitadasque disponen<br/> de internet</label>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_telef"> <label id="p_telef_TEXT">% Pobladores en viviendas que disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_cel"> <label id="p_cel_TEXT">% Pobladores en viviendas que disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variableX" name="variableX" type="radio" onclick="getDatos('X');" value="p_inter"> <label id="p_inter_TEXT">% Pobladores en viviendas que disponen<br/> de internet</label>
 									</li>  	
 								</ol>
 							</div>
 						</div>
 					</div>
 					<!-- DIMENSION X -->
+
+					<!-- DIMENSION X -->
 					
 					<!-- DIMENSION Y -->
+										<!-- DIMENSION Y -->
 					<div id="dialogoDimensionY" title="Seleccione la variable del Eje Y" style="width: 800px;height: 600px">
 						<div class="main_part_x">	
 							<div class="block">		
@@ -2361,10 +2634,10 @@
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE"/> <label>% Población nacida en otra entidad</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE_M"/> <label>% Población masculina nacida enotra entidad</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE_M"/> <label>% Población masculina nacida en otra entidad</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE_F"/> <label>% Población femenina nacida enotra entidad</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PNACOE_F"/> <label>% Población femenina nacida en otra entidad</label>
 									</li> 
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="PRES2005"/><label>% Población de 5 años y más residente <br/>en la en juniode 2005</label>
@@ -2387,7 +2660,7 @@
 									Población indígena
 									<hr />
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3YM_HLI"/><label>% Población de 3 años y más que habla alguna<br/> lengua indígena</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3YM_HLI"/><label>% Población de 3 años y más que habla alguna <br/> lengua indígena</label>
 									</li> 
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3YM_HLI_M"/><label>% Población masculina de 3 años y más que habla <br/>alguna lengua indígena </label>
@@ -2399,10 +2672,10 @@
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE"/><label>% Población de 3 años y más que habla alguna <br/>lengua indígena y no habla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/>que habla alguna lengua indígena <br/> y no habla español</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE_M"/><label>% Población masculina de 3 años y más <br/> que habla alguna lengua indígena <br/> y no habla español</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/>que habla alguna lenguaindígena y <br/>no habla español</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLINHE_F"/><label>% Población femenina de 3 años y más <br/> que habla alguna lenguaindígena y <br/>no habla español</label>
 									</li> 
 		        					<li>
 										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="P3HLI_HE"><label>% Población de 3 años y más que habla <br/>alguna lengua indígena y habla español</label>
@@ -2737,55 +3010,58 @@
 									</li> 
 									-->
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_pisodt"> <label>% Pobladores en viviendas con <br/>piso de tierra</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_c_elec"> <label>% Pobladores en viviendas que <br/>disponen de luz eléctrica</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_aguadv"> <label>% Pobladores en viviendas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_excsa"> <label>% Pobladores en viviendas que <br/>disponen de excusado o sanitario</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
-									</li> 
-		        					
-		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
-									</li> 
-		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
-									</li> 
-		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_drenaj"> <label>% Pobladores en viviendas que <br/>disponen de drenaje</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_radio"> <label>% Pobladores en viviendas que <br/> disponen de radio</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_tv"> <label>% Pobladores en viviendas que <br/> disponen de televisor</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_telef"> <label>% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_refri"> <label>% Pobladores en viviendas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_autom"> <label>% Pobladores en viviendas que<br/> disponen de automóvil o camioneta</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_cel"> <label>% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_pc"> <label>% Pobladores en viviendas que disponen de computadora</label>
 									</li> 
 		        					<li>
-										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_inter"> <label>% Viviendas particulares habitadasque disponen<br/> de internet</label>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_telef"> <label>% Pobladores en viviendas que disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_cel"> <label>%Pobladores en viviendas que disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variableY" name="variableY" type="radio" onclick="getDatos('Y');" value="p_inter"> <label>% Pobladores en viviendas que disponen<br/> de internet</label>
 									</li>  	
 								</ol>
 							</div>
 						</div>
 					</div>
 					<!-- DIMENSION Y -->
+
+					<!-- DIMENSION Y -->
 					
+					<!-- DIMENSION Z -->
 					<!-- DIMENSION Z -->
 					<div id="dialogoDimensionZ" title="Seleccione la variable del Tamaño" style="width: 800px;height: 600px">
 						
@@ -3331,53 +3607,55 @@
 									</li> 
 									-->
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_pisodt"> <label>% Viviendas particulares habitadas con <br/>piso de tierra</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_pisodt"> <label>% Pobladores en viviendas con <br/>piso de tierra</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_c_elec"> <label>% Viviendas particulares habitadas que <br/>disponen de luz eléctrica</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_c_elec"> <label>% Pobladores en viviendas que <br/>disponen de luz eléctrica</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_aguadv"> <label>% Viviendas particulares habitadas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_aguadv"> <label>% Pobladores en viviendas que <br/>disponen de agua entubada en  el ámbito de la vivienda</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_excsa"> <label>% Viviendas particulares habitadas que <br/>disponen de excusado o sanitario</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_excsa"> <label>% Pobladores en viviendas que <br/>disponen de excusado o sanitario</label>
 									</li> 
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_drenaj"> <label>% Viviendas particulares habitadas que <br/>disponen de drenaje</label>
-									</li> 
-		        					
-		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_radio"> <label>% Viviendas particulares habitadas que<br/> disponen de radio</label>
-									</li> 
-		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_tv"> <label>% Viviendas particulares habitadas que<br/> disponen de televisor</label>
-									</li> 
-		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_refri"> <label>% Viviendas particulares habitadas que<br/> disponen de refrigerador</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_drenaj"> <label>% Pobladores en viviendas que <br/>disponen de drenaje</label>
 									</li> 
 		        					
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_autom"> <label>% Viviendas particulares habitadas que<br/> disponen de automóvil o camioneta</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_radio"> <label>% Pobladores en viviendas  que<br/> disponen de radio</label>
 									</li> 
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_pc"> <label>% Viviendas particulares habitadasque disponen de computadora</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_tv"> <label>% Pobladores en viviendas  que<br/> disponen de televisor</label>
 									</li> 
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_telef"> <label>% Viviendas particulares habitadasque disponen<br/> de línea telefónica fija</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_refri"> <label>% Pobladores en viviendas que<br/> disponen de refrigerador</label>
+									</li> 
+		        					
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_autom"> <label>% Pobladores en viviendas que<br/> disponen de automóvil o camioneta</label>
 									</li> 
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_cel"> <label>% Viviendas particulares habitadasque disponen<br/> de teléfono celular </label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_pc"> <label>% Pobladores en viviendas que disponen de computadora</label>
 									</li> 
 		        					<li>
-										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_inter"> <label>% Viviendas particulares habitadasque disponen<br/> de internet</label>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_telef"> <label>% Pobladores en viviendas que disponen<br/> de línea telefónica fija</label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_cel"> <label>% Pobladores en viviendas que disponen<br/> de teléfono celular </label>
+									</li> 
+		        					<li>
+										<input  id="variableZ" name="variableZ" type="radio" onclick="getDatos('Z');" value="p_inter"> <label>% Pobladores en viviendas que disponen<br/> de internet</label>
 									</li>  	
 								</ol>
 							</div>
 						</div>
 					</div>
+					<!-- DIMENSION Z -->
+
 					<!-- DIMENSION Z -->
 </body>
 </html>

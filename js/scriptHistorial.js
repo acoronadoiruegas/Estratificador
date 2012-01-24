@@ -1,4 +1,4 @@
-         function AgregarEstrtificacion(id,estratos,sldFile,variables,metodo,parametros,urlLineChart,urlComponentChart)
+         function AgregarEstrtificacion(id,estratos,sldFile,variables,metodo,parametros,urlLineChart,urlComponentChart,filtroEstados)
 			{
 				var container=$('#listaEstratificaciones');
 				var curDate = new Date();
@@ -17,6 +17,7 @@
 			                                            var elemento = document.getElementById("'+"Estratificacion_"+id+'");\
 			                                            elemento.style.cursor = "pointer";\
 			                                            elemento.onclick = function(){\
+			                                            filtroEstados = ['+filtroEstados.join(",")+'];\
 			                                            estratos = ['+estratos.join(",")+'];\
 			                                            animaScatterPlot();\
 			                                            generaMapa();\
@@ -36,5 +37,5 @@
 			        container.append(str);                
 				//alert(str);
 			        
-			        $("#"+"Estratificacion_"+id).itemStratification({identificador:id,estratos:estratos,sldFile:sldFile,variables:variables,metodo:metodo,parametros:parametros,hora:curDate,urlLineChart:urlLineChart,urlComponentChart:urlComponentChart});
+			        $("#"+"Estratificacion_"+id).itemStratification({identificador:id,estratos:estratos,sldFile:sldFile,variables:variables,metodo:metodo,parametros:parametros,hora:curDate,urlLineChart:urlLineChart,urlComponentChart:urlComponentChart,filtroEstados:filtroEstados});
 			}       
