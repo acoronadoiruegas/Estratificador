@@ -7,23 +7,29 @@
 			        var curr_sec = curDate.getSeconds();
 			        var sldFile = "";
 			        var numEstratos = Math.max.apply( null, estratos);
-			               var str    = '	<div class="tweet" id="'+"Estratificacion_"+id+'">\
+			               var str    = '<div class="tweet" id="'+"Estratificacion_"+id+'">\
 								<div class="avatar"><img src="img/mexico.png" /></div>\
 								<div class="user">'+metodo+'</div>\
 								<div class="time"> Hora:'+curr_hour + ":" + curr_min+":"+curr_sec+'</div>\
 								<div class="time">'+'Vars: '+variables+'  Estratos: '+numEstratos+'</div>\
 			                                        </div>\
 			                                        <script type="text/javascript">\
+			                                            $("#Estratificacion_'+id+'").css("background-color","blue");\
 			                                            var elemento = document.getElementById("'+"Estratificacion_"+id+'");\
 			                                            elemento.style.cursor = "pointer";\
 			                                            elemento.onclick = function(){\
+			                                            unselectDivs();	\
+			                                            $("#Estratificacion_'+id+'").css("background-color","blue");\
+			                                            $("#titulo").html("ESTRATIFICADOR [ '+metodo+' ]");\
 			                                            filtroEstados = ['+filtroEstados.join(",")+'];\
 			                                            estratos = ['+estratos.join(",")+'];\
 			                                            animaScatterPlot();\
 			                                            generaMapa();\
 			                                            estableceGraficaCentros("'+urlLineChart+'");\
 			                                            cambiaGraficaComponentes("'+urlComponentChart+'");\
-                                                                    }</script >';
+			                                            $("#Estratificacion_'+id+'").css("background-color","blue");\
+			                                             };\
+                                                                    </script >';
     
 				//var contenido = container.html(); ACHIS!!!!
 			        //alert(contenido );

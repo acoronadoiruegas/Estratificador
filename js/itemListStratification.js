@@ -37,6 +37,9 @@
                                             var elemento = document.getElementById("'+"Estratificacion_"+entrada.identificador+'");\
                                             elemento.style.cursor = "pointer";\
                                             elemento.onclick = function(){\
+                                            unselectDivs();	\
+			                                $("#Estratificacion_'+entrada.identificador+'").css("background-color","blue");\
+			                                $("#titulo").html("ESTRATIFICADOR [ '+entrada.metodo+' ]");\
                                             filtroEstados = ['+entrada.filtroEstados.join(",")+'];\
                                             estratos = ['+entrada.estratos.join(",")+'];\
                                             animaScatterPlot();\

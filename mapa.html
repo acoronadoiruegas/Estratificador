@@ -323,6 +323,7 @@
    		}
    		
    		metodo="KMEDIAS";
+   		$('#titulo').html("ESTRATIFICADOR [ KMEDIAS ]");
    		numeroEjecuciones++;
    		imagenLineasCentros(); //Incrusta la gráfica de centroides.
    		animaScatterPlot();
@@ -375,6 +376,7 @@
 			}
 		   	
 		   metodo="MCLUST";
+		   $('#titulo').html("ESTRATIFICADOR [ MCLUST ]");
 		   numeroEjecuciones++;	
 		   imagenLineasCentros(); //Incrusta la gráfica de centroides.        
 		   animaScatterPlot();
@@ -427,6 +429,7 @@
    		}
    	   	
    	   metodo="MULVAR";
+   	   $('#titulo').html("ESTRATIFICADOR [ MULVAR ]");
    	   numeroEjecuciones++;
    	   imagenLineasCentros();
 	   animaScatterPlot();        
@@ -650,6 +653,7 @@
 			 });
          	AgregarEstrtificacion(numeroEjecuciones,estratos,urlSLD,variables,metodo,"Texto de los parametros",urlLineChart,urlComponentChart,filtroEstados);
          	$('#imagenComponentes').attr('src',urlImagen);
+         	
          	jQuery('#tabs').hideLoading();
          }
          
@@ -659,6 +663,14 @@
          	jQuery('#tabs').hideLoading();
          }
          
+         function unselectDivs()
+         {
+         	 for(var i=1; i <= numeroEjecuciones; i++)
+			 {  
+			 	$("#Estratificacion_"+i).css("background-color","transparent");
+			 }
+         	
+         }
          function csvCentros(){
             var num_estratos = Math.max.apply(Math, estratos); 
             var nivelGeografico = $('#nivelGeografico').val();
@@ -702,6 +714,15 @@
          }
          function cambiaCSVCentros(datamatrix){
          	$('#tiraMarginal').empty();
+         	var nivelGeografico = $('#nivelGeografico').val();
+         	var etiquetaGeo ="";
+         	if(nivelGeografico==0)
+         	{
+         		etiquetaGeo = "Mpios.";
+         	}else
+         	{
+         		etiquetaGeo = "Estados";
+         	}
          	var renglones = {};
          	renglones[0]=$('<tr style="color: #000000">');
          	renglones[0].append($('<td>'));
@@ -711,7 +732,7 @@
          	
          	$.each(datamatrix[0],function( intIndex, objValue ){
          			renglones[intIndex+1]=$('<tr scope="row" style="color:'+colorEstratos[intIndex]+'"">');
-         			renglones[intIndex+1].append($('<th>').text("Grupo"+(intIndex+1)+"-["+sizeCentros[intIndex]+" Mpios.]"));
+         			renglones[intIndex+1].append($('<th>').text("Grupo"+(intIndex+1)+"-["+sizeCentros[intIndex]+" "+etiquetaGeo+"]"));
          		});
          	
          	$.each(datamatrix,function( intIndex, objValue ){
@@ -743,6 +764,7 @@
          	
          }
          function openDialogDimension(dimension)  {
+         	 
 			 if(dimension=='X')
 			 {
 				 $("#dialogoDimensionX").dialog("open");
@@ -1029,6 +1051,11 @@
 </head>
 <body onload='init();'>
 		                <!-- LAYOUT FINAL -->
+		                <br>
+		                <div  style="width: 90%;height: 1%  ;text-align: center; color:#000000;">
+		                	<label id="titulo">ESTRATIFICADOR</label>
+		                </div>
+		                <br>
 		                <div class="colmask leftmenu" >
 						<div class="colleft">
 							<div class="col1" >
@@ -1223,10 +1250,10 @@
 						</div>
 					</div>
 					<div id="footer2">
-						<div style="width: 100%; text-align: right">
-						<a id="descargaLink" href='http://cic.inegi.org.mx/MotorGeoEstadistico/resources/files/cb60651c-85c6-4a4b-a493-091adcd97363_datS.csv' target="_blank">Descargar Datos</a>
+						<div style="width: 95%; text-align: right;">
+						<a id="descargaLink" href='http://cic.inegi.org.mx/MotorGeoEstadistico/resources/files/cb60651c-85c6-4a4b-a493-091adcd97363_datS.csv' target="_blank">Descargar Datos   </a>
 						</div>
-						<center><p style="color: black">INEGI 2012</p></center>
+						
 					</div>
 					<div id="dialog" title="Caracterización de la Estratificación" style="width: 800px">
 						<center> 
