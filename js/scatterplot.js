@@ -25,7 +25,7 @@
 					var settings = {
 						width : 500,
 						height : 500,
-						palette : ["#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","#FFFF33","#A65628","#F781BF","#999999"],
+						palette : ["#FEE08B","#FEE08B","#FEE08B","#FEE08B","#FEE08B","#FFFF33","#A65628","#F781BF","#999999"],
 						dots : 2456,
 						axisx : 10,
 						axisy : 10,
@@ -37,9 +37,9 @@
         				bottomgutter : 10, 
         				labels : ["Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila de Zaragoza",
 									"Colima","Chiapas","Chihuahua","Distrito Federal","Durango","Guanajuato","Guerrero","Hidalgo",
-									"Jalisco","México","Michoacán de Ocampo","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla",
-									"Querétaro","Quintana Roo","San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala",
-									"Veracruz de Ignacio de la Llave","Yucatán","Zacatecas"]       												
+									"Jalisco","Mï¿½xico","Michoacï¿½n de Ocampo","Morelos","Nayarit","Nuevo Leï¿½n","Oaxaca","Puebla",
+									"Querï¿½taro","Quintana Roo","San Luis Potosï¿½","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala",
+									"Veracruz de Ignacio de la Llave","Yucatï¿½n","Zacatecas"]       												
 					};
 					if(options)
 					{

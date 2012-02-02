@@ -22,11 +22,23 @@
                                         entrada.urlComponentChart = settings.urlComponentChart;
                                         entrada.filtroEstados = settings.filtroEstados;
                                         historial.push(entrada);
+                                        entrada.urlCSVEstratos =settings.urlCSVEstratos; 
+                                        entrada.grafTiraMarginal =settings.grafTiraMarginal;
+                                        entrada.colorEstratos = settings.colorEstratos;
+                                        entrada.nivelGeografico = settings.nivelGeografico;
 					return this
 				},
                                 getText:function(param){
                                 var i = param.id-1;                                                                
-                                var entrada = historial[i];                                                                
+                                var entrada = historial[i];    
+                                var strFiltroEstados = "";
+								if(entrada.filtroEstados==null)
+								{
+									strFiltroEstados = "";
+								}else
+								{
+									strFiltroEstados = entrada.filtroEstados.join(",")
+								}                                                            
                                 var str = '<div class="tweet" id="'+"Estratificacion_"+entrada.identificador+'">\
 					<div class="avatar"><img src="img/mexico.png" /></div>\
 					<div class="user">'+entrada.metodo+'</div>\
@@ -37,11 +49,17 @@
                                             var elemento = document.getElementById("'+"Estratificacion_"+entrada.identificador+'");\
                                             elemento.style.cursor = "pointer";\
                                             elemento.onclick = function(){\
+                                            jQuery("#tabs").showLoading();\
                                             unselectDivs();	\
 			                                $("#Estratificacion_'+entrada.identificador+'").css("background-color","blue");\
 			                                $("#titulo").html("ESTRATIFICADOR [ '+entrada.metodo+' ]");\
-                                            filtroEstados = ['+entrada.filtroEstados.join(",")+'];\
+                                            filtroEstados = ['+strFiltroEstados+'];\
+                                            grafTiraMarginal="'+entrada.grafTiraMarginal+'";\
+			                                urlCSVEstratos="'+entrada.urlCSVEstratos+'";\
                                             estratos = ['+entrada.estratos.join(",")+'];\
+                                            colorEstratos = ["'+entrada.colorEstratos.join('","')+'"];\
+                                            jQuery("#tabs").showLoading();\
+                                            nivelGeografico="'+entrada.nivelGeografico+'";\
                                             animaScatterPlot();\
                                             generaMapa();\
                                             estableceGraficaCentros("'+entrada.urlLineChart+'");\

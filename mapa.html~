@@ -12,11 +12,10 @@
 	<link href="css/showLoading.css" rel="stylesheet" media="screen" />  <!-- " LADING STYLE" --> 
 	<script src="jquery-ui/js/jquery-1.6.4.min.js" type="text/javascript" charset="utf-8"></script> <!-- " JQUERY" -->
 	<script src="jquery-ui/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript" charset="utf-8"></script>  <!-- " JQUERY UI" -->	
-	<script type='text/javascript' src="OpenLayers.js"></script> <!-- " CONTROL DE MAPAS" -->	
-	<!--[if !IE]> -->
-    <script type='text/javascript' src="maps/estados.min.geojson.js"></script>
-    <script type='text/javascript' src="maps/municipios_09.min.geojson.js"></script>
-    <!-- <![endif]-->
+	<script type='text/javascript' src="OpenLayers.js"></script> <!-- " CONTROL DE MAPAS" -->
+	<!-- <script type='text/javascript' src="maps/estados.min.geojson.js"></script>  <!-- " GEOJSON ESTADOS" -->
+	<!-- *****<script type='text/javascript' src="http://78.46.83.66/maps/municipio01.min.geojson.js"></script>  " GEOJSON MUNICIPIOS" -->
+	<!-- <script type='text/javascript' src="maps/municipios_09.min.geojson.js"></script>  <!-- " GEOJSON MUNICIPIOS" -->
 	<script type="text/javascript" src="js/scatterplot.js" charset="utf-8"></script>	 <!-- " PLUGIN JQUERY SCATTERPLOT" -->
 	<script type="text/javascript" src="js/raphael-min.js"></script>	 <!-- "PLUGIN RAPHAEL" -->
 	<script type="text/javascript" src="js/etiquetasmunicipios.min.js"></script>	 <!-- " ETIQUETAS DE MUNICIPIOS" -->
@@ -181,10 +180,8 @@
         var grafTiraMarginal="";
         var nivelGeografico ="1"; 	
         var fstScatter = true;
-        if ( $.browser.msie ) {
-			var estadosfeaturecollection = {};
-			var municipiosfeaturecollection = {};
-		}
+        var estadosfeaturecollection = {};
+        var municipiosfeaturecollection = {};
         //var ip = "http://localhost:7101";
         var ip = "http://cic.inegi.org.mx";
         //var ip = "http://10.1.8.76:7025";
@@ -212,11 +209,6 @@
 				 });
 				 map.addControl(highlightCtrl);
 				 highlightCtrl.activate();
-				 
-				 
-         	//jQuery('#MClustAvanzado').hideLoading();
-         	//jQuery('#MClustAvanzado').css("visibility","hidden");
-         	//jQuery('#MClustAvanzado').text(". . . . . . . .Generando Gráfica Mclust");
 			}
         function setMapaEstados(){
 			//////////////////////
@@ -229,7 +221,16 @@
              vector_layer_estados.addFeatures(geojson_format.read(estadosfeaturecollection));
 		  /////////////////////
 		}
-        		
+        
+        $.getJSON('maps/estados.min.geojson.json', function(data) {
+		  estadosfeaturecollection = data;
+		  setMapaEstados();
+		});
+        $.getJSON('maps/municipios_09.min.geojson.json', function(data) {
+		  municipiosfeaturecollection = data;
+		  setMapaMunicipios();
+		});
+		
         var estratos=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
         var poligonos=[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
         var colorEstratos =  ["#A50026","#006837","#F46D43","#66BD63","#FEE08B","#D9EF8B","#FDAE61","#A6D96A","#D73027",
@@ -260,22 +261,15 @@
                     {layers: 'c104'} );  
              map.addLayer(layer);
              map.setCenter(new OpenLayers.LonLat(lon, lat), zoom);      
+             /////
+             /////
+             /////
+             
+             
+             /////
+             /////
 			 var point = new OpenLayers.LonLat(-102.559, 23.6255); 			 
 			 map.setCenter(point, 5); 
-			 if ( $.browser.msie ) {
-				$.getJSON('maps/estados.min.geojson.json', function(data) {
-					  estadosfeaturecollection = data;
-					  setMapaEstados();
-					});
-				$.getJSON('maps/municipios_09.min.geojson.json', function(data) {
-					  municipiosfeaturecollection = data;
-					  setMapaMunicipios();
-					});
-				}else
-				{
-					setMapaEstados();
-					setMapaMunicipios();
-				}
              }
       function kmedias(){
 			 jQuery('#tabs').showLoading();
@@ -1112,7 +1106,7 @@
 		    document.body.appendChild(script);
          }
          function generaImagen(data)
-         {  
+         {
          	jQuery('#MClustAvanzado').hideLoading();
          	jQuery('#MClustAvanzado').css("visibility","hidden");
          	var urlImagen 
@@ -1159,7 +1153,7 @@
 											<div id='map_element' style='height: 540px;'> 
 												<div id="legend"> 
 													<div id="tiraMarginal">	
-														<image id="imagenTiraMarginal" src="img/blank.gif" >              
+														<image id="imagenTiraMarginal" >              
 											  			</image>																										
 													</div>
 												</div>
@@ -1836,7 +1830,7 @@
       						<div class="block">
       							<ol>
 		       						<li>
-										<input  id="variables" name="variables" type="checkbox" value="PNCATOLICA"> <label>% Protestantes, Evangélicas, y Bíblicas<br/> diferentes de evangélicas</label>
+										<input  id="variables" name="variables" type="checkbox" value="PNCATOLICA"> <label>% Protestantes, Evangélicas y Bíblicas<br/> diferentes de evangélicas</label>
   							    	</li> 
 		        					<li>
 										<input  id="variables" name="variables" type="checkbox" value="POTRAS_REL"> <label>% Población con otras religiones <br/>diferentes a las anteriores</label>
@@ -3794,10 +3788,5 @@
 					<!-- DIMENSION Z -->
 
 					<!-- DIMENSION Z -->
-					<script type="text/javascript">
-						//jQuery('#MClustAvanzado').text(". . . . . . . .Cargando Mapas");
-						//jQuery('#MClustAvanzado').css("visibility","visible");
-						//jQuery('#MClustAvanzado').showLoading({hPos:"left",indicatorZIndex:500,overlayZIndex:501});
-					</script>
 </body>
 </html>
