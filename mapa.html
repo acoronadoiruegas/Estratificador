@@ -9,7 +9,29 @@
 	
 	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>  <!-- " VISUALIZE STYLE" -->
 	<link rel="stylesheet" type="text/css" href="css/visualize-light.css"/>  <!-- " VISUALIZE STYLE" -->
-	<link href="css/showLoading.css" rel="stylesheet" media="screen" />  <!-- " LADING STYLE" --> 
+	<link href="css/showLoading.css" rel="stylesheet" media="screen" />  <!-- " LADING STYLE" -->
+	<!--Armando-->
+	<script languaje="JavaScript">
+<!--
+var rv = -1; // Return value assumes failure.
+      
+  if (navigator.appName == 'Microsoft Internet Explorer')
+  {
+      
+    var ua = navigator.userAgent;
+    var re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+    if (re.exec(ua) != null)
+      rv = parseFloat( RegExp.$1 );
+  }
+  if((rv==8||rv==7)&& navigator.appName == 'Microsoft Internet Explorer')
+{
+
+alert("Imposible utilizar esta aplicacion en internet explorer 8 o anteriores");
+window.location="index.html"
+}
+
+</script>
+<!--Armando--> 
 	<script src="jquery-ui/js/jquery-1.6.4.min.js" type="text/javascript" charset="utf-8"></script> <!-- " JQUERY" -->
 	<script src="jquery-ui/js/jquery-ui-1.8.16.custom.min.js" type="text/javascript" charset="utf-8"></script>  <!-- " JQUERY UI" -->	
 	<script type='text/javascript' src="OpenLayers.js"></script> <!-- " CONTROL DE MAPAS" -->	
@@ -26,7 +48,7 @@
 	<script src="js/jquery.showLoading.js" type="text/javascript" charset="utf-8"></script> <!-- " PLUGIN LOADING" -->
 	<script src="js/excanvas.js" type="text/javascript" charset="utf-8"></script> <!-- " PLUGIN EXCANVAS" -->
 	<script src="js/visualize.jQuery.js" type="text/javascript" charset="utf-8"></script> <!-- " PLUGIN VUSUALIZE" -->
-	<!--HOLA HOLA SE MODIFICO-->
+	
 	
 	
 	<STYLE type="text/css">
